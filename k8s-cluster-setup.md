@@ -1,5 +1,9 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+ - Node CIDR: `192.168.1.0/16`
+ - Cluster CIDR: `10.200.0.0/16`
+ - Service Cluster CIDR: `10.32.0.0/16`
+
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
 
 ```
