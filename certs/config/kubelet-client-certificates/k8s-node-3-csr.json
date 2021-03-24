@@ -1,0 +1,14 @@
+{
+  "CN": "system:node:k8s-node-3",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CA",
+      "L": "Hamilton",
+      "O": "system:nodes"
+    }
+  ]
+}
