@@ -1,5 +1,8 @@
-# Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
+# Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
+
+```
 for instance in k8s-node-1 k8s-node-2 k8s-node-3; do
 cat > ${instance}-csr.json <<EOF
 {
@@ -876,3 +879,4 @@ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl versio
 
 # Setup the DNS Service
 kubectl apply -f coredns-1.8.3.yaml
+```
