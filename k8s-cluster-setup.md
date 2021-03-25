@@ -5,11 +5,8 @@ Overall steps:
 
 1. Do K8s the Hard Way
 2. Don't deploy DNS
-3. Configure a network plugin
+3. Configure kubenet
 4. Deploy DNS
-
-TODO:
-- Use openssl to generate certificates.
 
 Project Calico will be used as the Network Plugin to manage Pod networking and Network Policies.
  - BGP dataplane ?
