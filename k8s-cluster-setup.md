@@ -1,7 +1,35 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+
+Overall steps:
+
+1. Do K8s the Hard Way
+2. Don't deploy DNS
+3. Configure a network plugin
+4. Deploy DNS
+
+TODO:
+- Use openssl to generate certificates.
+
+Project Calico will be used as the Network Plugin to manage Pod networking and Network Policies.
+ - BGP dataplane ?
+ - Standard Linux dataplane ?
+ - Ethernet fabric
+ - Kubernetes API datastore (kdd)
+ - Disable IP-in-IP encapsulation.
+ - Enable etcd TLS (/etc/etcd/).
+ - Configure IP Pools.
+ - USE_POD_CIDR = true
+
+Install the Calico binary (CNI plugin) on every node in the Kubernetes cluster.
+
+The CNI plugin must authenticate with the K8s API server. Generate a certificate and sign it, then
+create the kubeconfig.
+
+Define the cluster role that the Calico CNI plugin will use, then bind it to the account.
+
  - Node CIDR: `192.168.1.0/16`
- - Cluster CIDR: `10.200.0.0/16`
+ - Cluster CIDR: `10.16.0.0/16`
  - Service Cluster CIDR: `10.32.0.0/16`
 
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
