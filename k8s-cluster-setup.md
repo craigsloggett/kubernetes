@@ -131,10 +131,13 @@ Everything here it to be done on a local machine (macOS is used here).
 ```
 export KUBE_VERSION=1.20.5
 ```
+
 ### kubectl
 
 ```
 curl -o kubectl "https://storage.googleapis.com/kubernetes-release/release/v$KUBE_VERSION/bin/darwin/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin
 ```
 
 ---
