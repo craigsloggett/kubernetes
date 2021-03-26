@@ -344,6 +344,14 @@ cfssl gencert \
 openssl x509 -in kubernetes.pem -text -noout
 ```
 
+### Distribute the TLS Certificates
+
+```
+for host in controller-0 node-0 node-1 node-2; do
+  scp ca.pem kubernetes-key.pem kubernetes.pem nerditup@k8s-${host}:~
+done
+```
+
 ---
 # WIP from here on...
 
