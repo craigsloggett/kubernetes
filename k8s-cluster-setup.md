@@ -162,7 +162,12 @@ cat /proc/swaps
 
 7. Enable cgroups.
 
-By default, the Debian image used for the Raspberry Pis has all required cgroups enabled.
+By default, the Debian image used for the Raspberry Pis has all required cgroups enabled. To 
+confirm,
+
+```
+cat /proc/cgroups | column -t
+```
 
 8. Enable `overlay` and `br_netfilter` kernel modules.
 
