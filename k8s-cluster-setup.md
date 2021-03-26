@@ -1,5 +1,10 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+## Versions
+
+Debian: `10.8`
+Kubernetes: `1.20.5`
+
 ## Preparing the Hardware
 
 1. Download a Debian SD card image for the Raspberry Pi: https://raspi.debian.net/tested-images/
@@ -117,6 +122,19 @@ apt upgrade
 ```
 # Example loop for k8s-controller-0.
 for i in node-0 node-1 node-2; do ssh-copy-id nerditup@k8s-$i; done
+```
+
+## Install the Client Tools (Locally)
+
+Everything here it to be done on a local machine (macOS is used here).
+
+```
+export KUBE_VERSION=1.20.5
+```
+### kubectl
+
+```
+curl -o kubectl "https://storage.googleapis.com/kubernetes-release/release/v$KUBE_VERSION/bin/darwin/amd64/kubectl"
 ```
 
 ---
