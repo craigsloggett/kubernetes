@@ -67,7 +67,36 @@ apt upgrade
    ```
    wget -O /lib/firmware/brcm/BCM4345C5.hcd https://github.com/armbian/firmware/raw/master/brcm/BCM4345C5.hcd
    wget -O /lib/firmware/brcm/BCM4345C0.hcd https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd
+   wget -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob
    ```
+
+3. Configure a regular user.
+
+   a. Add the user.
+   ```
+   adduser nerditup
+   usermod –a –G sudo nerditup
+   ```
+   
+   b. Generate an SSH key.
+   ```
+   # As the regular user.
+   ssh-keygen -t ed25519
+   
+   # As root.
+   cp ~/.ssh/authorized_keys /home/nerditup/.ssh
+   chown nerditup:nerditup /home/nerditup/.ssh/authorized_keys
+   ```
+   
+   c. Login as the regular user.
+
+4. Update /etc/hosts with the correct hostname.
+
+```
+# Example entries to update.
+127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
+::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+```
 
 Overall steps:
 
