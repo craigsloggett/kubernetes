@@ -338,6 +338,12 @@ cfssl gencert \
   kubernetes-csr.json | cfssljson -bare kubernetes
 ```
 
+#### Verify
+
+```
+openssl x509 -in kubernetes.pem -text -noout
+```
+
 ---
 # WIP from here on...
 
