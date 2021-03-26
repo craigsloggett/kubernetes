@@ -1,10 +1,8 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
 This guide will setup a Kubernetes cluster "the hard way" on a Raspberry Pi 4 cluster using four
-physical machines.
-
-I have chosen not to use `kubeadm` in order to understand fully the deployment process of a
-Kubernetes cluster deployed on-premise.
+physical machines. I have chosen not to use `kubeadm` in order to understand fully the deployment 
+process of a Kubernetes cluster deployed on-premise.
 
 Here are the software choices for this configuration:
  - Debian 10 Buster
@@ -13,25 +11,27 @@ Here are the software choices for this configuration:
    - runc
    - kubenet
 
+`kubenet` has been chosen as the network provider to simplify the configuration required to get a 
+bare metal MVP cluster. Using this guide, I plan on automating this process with POSIX shell scripts
+to keep the dependencies as small as possible.
+
+In the future, I would like to swap `kubenet` for `flannel` and then ultimately `calico` with eBGP 
+and network policies configured with the goal of provisioning a "production ready" cluster following 
+the latest best practices.
+
 ## Versions
 
-Debian: `10.8`
-
-Kubernetes: `1.20.5`
-
-CFSSL: `1.5.0`
-
-cri-o: 
-
-runc: 
+ - Debian: `10.8`
+ - Kubernetes: `1.20.5`
+ - CFSSL: `1.5.0`
+ - cri-o: 
+ - runc: 
 
 ## Networking
 
-Host CIDR: `192.168.1.0/16`
-
-Cluster CIDR: `10.200.0.0/16`
-
-Service Cluster CIDR: `10.32.0.0/16`
+ - Host CIDR: `192.168.1.0/16`
+ - Cluster CIDR: `10.200.0.0/16`
+ - Service Cluster CIDR: `10.32.0.0/16`
 
 ## Preparing the Hardware
 
