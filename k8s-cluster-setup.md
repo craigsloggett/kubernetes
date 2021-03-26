@@ -291,7 +291,7 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 openssl x509 -in ca.pem -text -noout
 ```
 
-### Generate the Single Kubernetes TLS Cert
+### Generate the Kubernetes Certificate and Private Key
 
 #### Create the Kubernetes CSR
 
@@ -325,6 +325,17 @@ cat > kubernetes-csr.json <<EOF
   ]
 }
 EOF
+```
+
+#### Generate the Kubernetes Certificate and Private Key
+
+```
+cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  kubernetes-csr.json | cfssljson -bare kubernetes
 ```
 
 ---
