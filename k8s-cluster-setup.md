@@ -227,12 +227,65 @@ sudo mv cfssl cfssljson /usr/local/bin
 
 ---
 
-Starting from here, Kelsey Hightower's guide will be used as a reference: https://github.com/kelseyhightower/kubernetes-the-hard-way
-
 ## Provisioning CA and Generating TLS Certs
 
 Everything here it to be done on a local machine.
 
+I have chosen to create a single certificate for all communication for this guide. In a production
+cluster, it is recommended that a TLS certificate be generated for each component.
+
+### Create the CA Configuration File
+
+```
+echo '{
+  "signing": {
+    "default": {
+      "expiry": "8760h"
+    },
+    "profiles": {
+      "kubernetes": {
+        "usages": ["signing", "key encipherment", "server auth", "client auth"],
+        "expiry": "8760h"
+      }
+    }
+  }
+}' > ca-config.json
+```
+
+### Generate the CA Certificate and Private Key
+
+#### Create the CA CSR
+
+```
+echo '{
+  "CN": "Kubernetes",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CA",
+      "ST": "Ontario",
+      "L": "Hamilton",
+      "O": "Kubernetes",
+      "OU": "CA"
+    }
+  ]
+}' > ca-csr.json
+```
+
+#### Generate the CA Certificate and Private Key
+
+```
+cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+```
+
+#### Verify
+
+```
+openssl x509 -in ca.pem -text -noout
+```
 
 ---
 # WIP from here on...
