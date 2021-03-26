@@ -1,5 +1,39 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+## Preparing the Hardware
+
+1. Download a Debian SD card image for the Raspberry Pi: https://raspi.debian.net/tested-images/
+2. Prepare the SD cards for each Raspberry Pi.
+
+   a. Flash the image to each SD card:
+
+   ```
+   xzcat 20210210_raspi_4_buster.img.xz | sudo dd of=/dev/disk2 bs=64k
+   ```
+   
+   b. Update the configuration settings of the image:
+   
+   ```
+   vim /Volumes/RASPIFIRM/sysconf.txt
+   # Uncomment and update the root_autherized_key value (e.g. pbcopy < ~/.ssh/id_ed25519.pub).
+   # Uncomment and update the hostname value (e.g. k8s-controller-0).
+   ```
+   
+   c. Unmount the SD card:
+
+   ```
+   sudo diskutil unmount /Volumes/RASPIFIRM
+   ``` 
+
+   d. Repeat for all four Raspberry Pis:
+   
+   ```
+   k8s-controller-0
+   k8s-node-0
+   k8s-node-1
+   k8s-node-2
+   ```
+
 
 Overall steps:
 
