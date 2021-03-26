@@ -1,5 +1,15 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
+This guide will setup a Kubernetes cluster "the hard way" on a Raspberry Pi 4 cluster using four
+physical machines.
+
+Here are the software choices for this configuration:
+ - Debian 10 Buster
+ - Kubernetes
+   - CRI-O
+   - runc
+   - kubenet
+
 ## Versions
 
 Debian: `10.8`
