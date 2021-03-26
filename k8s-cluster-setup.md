@@ -22,6 +22,7 @@ the latest best practices.
 ## Versions
 
  - Debian: `10.8`
+ - iptables: `1.8.2 (nf_tables)`
  - Kubernetes: `1.20.5`
  - CFSSL: `1.5.0`
  - cri-o: 
