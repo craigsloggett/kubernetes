@@ -62,6 +62,12 @@ apt upgrade
    reboot
    ```
 
+   b. Install the Bluetooth firmware:
+   
+   ```
+   wget -O /lib/firmware/brcm/BCM4345C5.hcd https://github.com/armbian/firmware/raw/master/brcm/BCM4345C5.hcd
+   wget -O /lib/firmware/brcm/BCM4345C0.hcd https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd
+   ```
 
 Overall steps:
 
