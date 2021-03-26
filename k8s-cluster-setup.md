@@ -161,6 +161,9 @@ cat /proc/swaps
 ```
 
 7. Enable cgroups.
+
+By default, the Debian image used for the Raspberry Pis has all required cgroups enabled.
+
 8. Enable `overlay` and `br_netfilter` kernel modules.
 
 On all machines:
@@ -187,6 +190,8 @@ net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
 ```
+
+10. Reboot all machines.
 
 ## Install the Client Tools (Locally)
 
