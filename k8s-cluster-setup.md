@@ -237,7 +237,8 @@ cluster, it is recommended that a TLS certificate be generated for each componen
 ### Create the CA Configuration File
 
 ```
-echo '{
+cat ca-config.json <<EOF
+{
   "signing": {
     "default": {
       "expiry": "8760h"
@@ -249,7 +250,8 @@ echo '{
       }
     }
   }
-}' > ca-config.json
+}
+EOF
 ```
 
 ### Generate the CA Certificate and Private Key
@@ -257,7 +259,8 @@ echo '{
 #### Create the CA CSR
 
 ```
-echo '{
+cat > ca-csr.json <<EOF
+{
   "CN": "Kubernetes",
   "key": {
     "algo": "rsa",
@@ -272,7 +275,8 @@ echo '{
       "OU": "CA"
     }
   ]
-}' > ca-csr.json
+}
+EOF
 ```
 
 #### Generate the CA Certificate and Private Key
@@ -285,6 +289,44 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 
 ```
 openssl x509 -in ca.pem -text -noout
+```
+
+### Generate the Single Kubernetes TLS Cert
+
+#### Create the Kubernetes CSR
+
+```
+cat > kubernetes-csr.json <<EOF
+{
+  "CN": "kubernetes",
+  "hosts": [
+    "controller0",
+    "controller1",
+    "controller2",
+    "worker0",
+    "worker1",
+    "10.0.1.94",
+    "10.0.1.95",
+    "10.0.1.96",
+    "10.0.1.97",
+    "10.0.1.98",
+    "127.0.0.1"
+  ],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "US",
+      "L": "Portland",
+      "O": "Kubernetes",
+      "OU": "Cluster",
+      "ST": "Oregon"
+    }
+  ]
+}
+EOF
 ```
 
 ---
