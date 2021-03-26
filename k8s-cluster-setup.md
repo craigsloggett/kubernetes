@@ -5,6 +5,14 @@
 Debian: `10.8`
 Kubernetes: `1.20.5`
 CFSSL: `1.5.0`
+cri-o: 
+runc: 
+
+## Networking
+
+Host CIDR: `192.168.1.0/16`
+Cluster CIDR: `10.200.0.0/16`
+Service Cluster CIDR: `10.32.0.0/16`
 
 ## Preparing the Hardware
 
@@ -125,6 +133,17 @@ apt upgrade
 for i in node-0 node-1 node-2; do ssh-copy-id nerditup@k8s-$i; done
 ```
 
+6. Disable `swap`.
+7. Enable cgroups.
+8. Enable `overlay` and `br_netfilter` kernel modules.
+9. Enable ip forwarding.
+
+```
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+```
+
 ## Install the Client Tools (Locally)
 
 Everything here it to be done on a local machine (macOS is used here).
@@ -150,6 +169,15 @@ curl -o cfssljson -L "https://github.com/cloudflare/cfssl/releases/download/v${C
 chmod +x cfssl cfssljson
 sudo mv cfssl cfssljson /usr/local/bin
 ```
+
+---
+
+Starting from here, Kelsey Hightower's guide will be used as a reference: https://github.com/kelseyhightower/kubernetes-the-hard-way
+
+## Provisioning CA and Generating TLS Certs
+
+Everything here it to be done on a local machine.
+
 
 ---
 # WIP from here on...
@@ -178,9 +206,6 @@ create the kubeconfig.
 
 Define the cluster role that the Calico CNI plugin will use, then bind it to the account.
 
- - Node CIDR: `192.168.1.0/16`
- - Cluster CIDR: `10.16.0.0/16`
- - Service Cluster CIDR: `10.32.0.0/16`
 
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
 
