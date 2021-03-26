@@ -92,7 +92,7 @@ apt upgrade
    
    c. Login as the regular user.
 
-4. Update /etc/hosts.
+4. Update `/etc/hosts`.
 
    a. Update the hostname:
    
