@@ -153,14 +153,27 @@ for i in node-0 node-1 node-2; do ssh-copy-id nerditup@k8s-$i; done
 ```
 
 6. Disable `swap`.
+
+By default, the Debian image used for the Raspberry Pis doesn't use swap. To confirm,
+
+```
+cat /proc/swaps
+```
+
 7. Enable cgroups.
 8. Enable `overlay` and `br_netfilter` kernel modules.
 9. Enable ip forwarding.
 
+On all machines:
+
 ```
-net.bridge.bridge-nf-call-iptables  = 1
+vi /etc/sysctl.d/local.conf
+
+# Add the following to this file.
+
+net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward                 = 1
+net.ipv4.ip_forward = 1
 ```
 
 ## Install the Client Tools (Locally)
