@@ -4,6 +4,7 @@
 
 Debian: `10.8`
 Kubernetes: `1.20.5`
+CFSSL: `1.5.0`
 
 ## Preparing the Hardware
 
@@ -130,14 +131,24 @@ Everything here it to be done on a local machine (macOS is used here).
 
 ```
 export KUBE_VERSION=1.20.5
+export CFSSL_VERSION=1.5.0
 ```
 
 ### kubectl
 
 ```
-curl -o kubectl "https://storage.googleapis.com/kubernetes-release/release/v$KUBE_VERSION/bin/darwin/amd64/kubectl"
+curl -o kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/darwin/amd64/kubectl"
 chmod +x kubectl
 sudo mv kubectl /usr/local/bin
+```
+
+### cfssl
+
+```
+curl -o cfssl -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssl_${CFSSL_VERSION}_darwin_amd64"
+curl -o cfssljson -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssljson_${CFSSL_VERSION}_darwin_amd64"
+chmod +x cfssl cfssljson
+sudo mv cfssl cfssljson /usr/local/bin
 ```
 
 ---
