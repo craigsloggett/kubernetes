@@ -27,7 +27,7 @@ the latest best practices.
  - cri-o: 
  - runc: 
 
-## Networking
+## Network CIDRs
 
  - Host CIDR: `192.168.1.0/16`
  - Cluster CIDR: `10.200.0.0/16`
