@@ -16,7 +16,7 @@ bare metal MVP cluster. Using this guide, I plan on automating this process with
 to keep the dependencies as small as possible.
 
 In the future, I would like to swap `kubenet` for `flannel` and then ultimately `calico` with eBGP 
-and network policies configured with the goal of provisioning a "production ready" cluster following 
+and network policies configured with the goal of provisioning a "production ready" cluster following
 the latest best practices.
 
 ## Versions
