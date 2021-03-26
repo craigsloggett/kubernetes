@@ -33,7 +33,7 @@
    k8s-node-1
    k8s-node-2
    ```
-### SSH to each Raspberry Pi
+### Preparing the OS
 
 1. Update the OS:
 
@@ -73,12 +73,14 @@ apt upgrade
 3. Configure a regular user.
 
    a. Add the user.
+
    ```
    adduser nerditup
    usermod –a –G sudo nerditup
    ```
    
    b. Generate an SSH key.
+
    ```
    # As the regular user.
    ssh-keygen -t ed25519
@@ -90,12 +92,31 @@ apt upgrade
    
    c. Login as the regular user.
 
-4. Update /etc/hosts with the correct hostname.
+4. Update /etc/hosts.
+
+   a. Update the hostname:
+   
+   ```
+   # Example entries to update.
+   127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
+   ::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+   ```
+   
+   b. Add the cluster IPs:
+   
+   ```
+   # Kubernetes Cluster
+   192.168.1.110   k8s-controller-0
+   192.168.1.120   k8s-node-0
+   192.168.1.121   k8s-node-1
+   192.168.1.122   k8s-node-2
+   ```
+
+5. Copy SSH keys to each host:
 
 ```
-# Example entries to update.
-127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
-::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+# Example loop for k8s-controller-0.
+for i in node-0 node-1 node-2; do ssh-copy-id nerditup@k8s-$i; done
 ```
 
 Overall steps:
