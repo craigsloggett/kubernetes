@@ -244,7 +244,7 @@ cat ca-config.json <<EOF
       "expiry": "8760h"
     },
     "profiles": {
-      "kubernetes": {
+      "Kubernetes": {
         "usages": ["signing", "key encipherment", "server auth", "client auth"],
         "expiry": "8760h"
       }
@@ -298,18 +298,16 @@ openssl x509 -in ca.pem -text -noout
 ```
 cat > kubernetes-csr.json <<EOF
 {
-  "CN": "kubernetes",
+  "CN": "Kubernetes",
   "hosts": [
-    "controller0",
-    "controller1",
-    "controller2",
-    "worker0",
-    "worker1",
-    "10.0.1.94",
-    "10.0.1.95",
-    "10.0.1.96",
-    "10.0.1.97",
-    "10.0.1.98",
+    "k8s-controller-0",
+    "k8s-node-0",
+    "k8s-node-1",
+    "k8s-node-2",
+    "192.168.1.110",
+    "192.168.1.120",
+    "192.168.1.121",
+    "192.168.1.122",
     "127.0.0.1"
   ],
   "key": {
@@ -318,11 +316,11 @@ cat > kubernetes-csr.json <<EOF
   },
   "names": [
     {
-      "C": "US",
-      "L": "Portland",
+      "C": "CA",
+      "ST": "Ontario",
+      "L": "Hamilton",
       "O": "Kubernetes",
-      "OU": "Cluster",
-      "ST": "Oregon"
+      "OU": "CA"
     }
   ]
 }
