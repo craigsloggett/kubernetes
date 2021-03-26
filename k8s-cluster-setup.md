@@ -119,6 +119,9 @@ apt upgrade
 for i in node-0 node-1 node-2; do ssh-copy-id nerditup@k8s-$i; done
 ```
 
+```
+###### WIP from here on...
+```
 Overall steps:
 
 1. Do K8s the Hard Way
