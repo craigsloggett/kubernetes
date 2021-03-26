@@ -3,6 +3,9 @@
 This guide will setup a Kubernetes cluster "the hard way" on a Raspberry Pi 4 cluster using four
 physical machines.
 
+I have chosen not to use `kubeadm` in order to understand fully the deployment process of a
+Kubernetes cluster deployed on-premise.
+
 Here are the software choices for this configuration:
  - Debian 10 Buster
  - Kubernetes
@@ -25,7 +28,9 @@ runc:
 ## Networking
 
 Host CIDR: `192.168.1.0/16`
+
 Cluster CIDR: `10.200.0.0/16`
+
 Service Cluster CIDR: `10.32.0.0/16`
 
 ## Preparing the Hardware
