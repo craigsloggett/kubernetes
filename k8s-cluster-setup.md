@@ -162,6 +162,18 @@ cat /proc/swaps
 
 7. Enable cgroups.
 8. Enable `overlay` and `br_netfilter` kernel modules.
+
+On all machines:
+
+```
+vi /etc/modules-load.d/modules.conf
+
+# Add the following to this file.
+
+overlay
+br_netfilter
+```
+
 9. Enable ip forwarding.
 
 On all machines:
