@@ -231,8 +231,8 @@ sudo mv cfssl cfssljson /usr/local/bin
 
 Everything here it to be done on a local machine.
 
-I have chosen to create a single certificate for all communication for this guide. In a production
-cluster, it is recommended that a TLS certificate be generated for each component.
+I have chosen to create a single certificate for all TLS communication. In a production cluster, it 
+is recommended that a TLS certificate be generated for each component.
 
 ### Create the CA Configuration File
 
