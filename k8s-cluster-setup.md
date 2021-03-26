@@ -13,9 +13,13 @@ Here are the software choices for this configuration:
 ## Versions
 
 Debian: `10.8`
+
 Kubernetes: `1.20.5`
+
 CFSSL: `1.5.0`
+
 cri-o: 
+
 runc: 
 
 ## Networking
