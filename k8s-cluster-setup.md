@@ -33,6 +33,34 @@
    k8s-node-1
    k8s-node-2
    ```
+### SSH to each Raspberry Pi
+
+1. Update the OS:
+
+```
+apt update
+apt upgrade
+```
+
+2. Check dmesg for errors.
+
+   a. Add the regulatory database for wireless adapters:
+   
+   ```
+   # Local machine
+   git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
+   cd wireless-regdb
+   git checkout <latest-release-tag>  # e.g. master-2020-11-20
+   
+   for i in controller-0 node-0 node-1 node-2
+     do scp regulatory.db regulatory.db.p7s root@k8s-$i:/root
+   done
+   
+   # Raspberry Pis
+   
+   mv /root/regulatory.db* /lib/firmware/
+   reboot
+   ```
 
 
 Overall steps:
