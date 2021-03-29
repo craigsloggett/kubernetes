@@ -406,21 +406,21 @@ Documentation=https://github.com/coreos
 Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 Type=notify
 ExecStart=/usr/local/bin/etcd \\
-  --name "${controller_hostname}" \\
-  --cert-file="${etcd_pki_directory}"/kubernetes.pem \\
-  --key-file="${etcd_pki_directory}"/kubernetes-key.pem \\
-  --peer-cert-file="${etcd_pki_directory}"/kubernetes.pem \\
-  --peer-key-file="${etcd_pki_directory}"/kubernetes-key.pem \\
-  --trusted-ca-file="${etcd_pki_directory}"/ca.pem \\
-  --peer-trusted-ca-file="${etcd_pki_directory}"/ca.pem \\
+  --name ${controller_hostname} \\
+  --cert-file=${etcd_pki_directory}/kubernetes.pem \\
+  --key-file=${etcd_pki_directory}/kubernetes-key.pem \\
+  --peer-cert-file=${etcd_pki_directory}/kubernetes.pem \\
+  --peer-key-file=${etcd_pki_directory}/kubernetes-key.pem \\
+  --trusted-ca-file=${etcd_pki_directory}/ca.pem \\
+  --peer-trusted-ca-file=${etcd_pki_directory}/ca.pem \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
-  --initial-advertise-peer-urls https://"${controller_ip}":2380 \\
-  --listen-peer-urls https://"${controller_ip}":2380 \\
-  --listen-client-urls https://"${controller_ip}":2379,https://127.0.0.1:2379 \\
-  --advertise-client-urls https://"${controller_ip}":2379 \\
+  --initial-advertise-peer-urls https://${controller_ip}:2380 \\
+  --listen-peer-urls https://${controller_ip}:2380 \\
+  --listen-client-urls https://${controller_ip}:2379,https://127.0.0.1:2379 \\
+  --advertise-client-urls https://${controller_ip}:2379 \\
   --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster "${controller_hostname}"=https://"${controller_ip}":2380 \\
+  --initial-cluster ${controller_hostname}=https://${controller_ip}:2380 \\
   --initial-cluster-state new \\
   --data-dir=/var/lib/etcd
 Restart=on-failure
