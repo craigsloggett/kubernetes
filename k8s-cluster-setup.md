@@ -109,9 +109,10 @@ apt upgrade
    b. Install the Bluetooth firmware:
    
    ```
-   wget -O /lib/firmware/brcm/BCM4345C5.hcd https://github.com/armbian/firmware/raw/master/brcm/BCM4345C5.hcd
-   wget -O /lib/firmware/brcm/BCM4345C0.hcd https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd
-   wget -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob
+   firmware_repo_url="https://github.com/armbian/firmware/raw/master"
+   wget -O /lib/firmware/brcm/BCM4345C5.hcd "${firmware_repo_url}"/brcm/BCM4345C5.hcd
+   wget -O /lib/firmware/brcm/BCM4345C0.hcd "${firmware_repo_url}"/BCM4345C0.hcd
+   wget -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "${firmware_repo_url}"/brcm/brcmfmac43455-sdio.clm_blob
    ```
 
 3. Configure a regular user.
@@ -241,126 +242,67 @@ sudo mv cfssl cfssljson /usr/local/bin
 
 Everything here it to be done on a local machine.
 
-In order to implement RBAC 
+### Authentication
 
-I have chosen to create a single certificate for all TLS communication. In a production cluster, it 
-is recommended that a TLS certificate be generated for each component.
+For Kubernetes certificates best practices, reference this document:
+https://kubernetes.io/docs/setup/best-practices/certificates/
 
-### Create the CA Configuration File
+For details on how Kubernetes authenticates using signed certificates, reference this document:
+https://kubernetes.io/docs/reference/access-authn-authz/authentication/
 
-```
-cat ca-config.json <<EOF
-{
-  "signing": {
-    "default": {
-      "expiry": "8760h"
-    },
-    "profiles": {
-      "kubernetes": {
-        "usages": ["signing", "key encipherment", "server auth", "client auth"],
-        "expiry": "8760h"
-      }
-    }
-  }
-}
-EOF
-```
+> Kubernetes determines the username from the common name field in the 'subject' of the cert (e.g., "/CN=bob").
 
-### Generate the CA Certificate and Private Key
+Client certificates will be generated to authenticate API requests for each of the following roles:
+ - admin
+ - system:kube-controller-manager
+ - system:kube-proxy
+ - system:kube-scheduler
 
-#### Create the CA CSR
+Additionally, a service account client certificate will be generated to authenticate service account
+API requests.
 
-```
-cat > ca-csr.json <<EOF
-{
-  "CN": "Kubernetes",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "ST": "Ontario",
-      "L": "Hamilton",
-      "O": "Kubernetes",
-      "OU": "CA"
-    }
-  ]
-}
-EOF
-```
+### Authorization
 
-#### Generate the CA Certificate and Private Key
+For details on security best practices, refer to this document:
+https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/
 
-```
-cfssl gencert -initca ca-csr.json | cfssljson -bare ca
-```
+> It is recommended that you use the Node and RBAC authorizers together, in combination with the NodeRestriction admission plugin.
+
+For details on node authorization, refer to this document:
+https://kubernetes.io/docs/reference/access-authn-authz/node/
+
+> In order to be authorized by the Node authorizer, kubelets must use a credential that identifies them as being in the system:nodes group, with a username of system:node:<nodeName>.
+
+When generating the kubelet client certificates, the CN must be `system:node:<nodeName>` where 
+`<nodeName>` will be the hostname of the node the certificate is being generated for.
+
+### Genertaing TLS Certs
+
+All certificates are generating using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/certs/generate-ca.sh
 
 #### Verify
 
 ```
-openssl x509 -in ca.pem -text -noout
-```
-
-### Generate the Kubernetes Certificate and Private Key
-
-#### Create the Kubernetes CSR
-
-```
-cat > kubernetes-csr.json <<EOF
-{
-  "CN": "Kubernetes",
-  "hosts": [
-    "k8s-controller-0",
-    "k8s-node-0",
-    "k8s-node-1",
-    "k8s-node-2",
-    "192.168.1.110",
-    "192.168.1.120",
-    "192.168.1.121",
-    "192.168.1.122",
-    "127.0.0.1"
-  ],
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "ST": "Ontario",
-      "L": "Hamilton",
-      "O": "Kubernetes",
-      "OU": "CA"
-    }
-  ]
-}
-EOF
-```
-
-#### Generate the Kubernetes Certificate and Private Key
-
-```
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=ca-config.json \
-  -profile=kubernetes \
-  kubernetes-csr.json | cfssljson -bare kubernetes
-```
-
-#### Verify
-
-```
-openssl x509 -in kubernetes.pem -text -noout
+openssl x509 -in <certificate_name.pem> -text -noout
 ```
 
 ### Distribute the TLS Certificates
 
+Distribute the appropriate certificates and private keys to each node host:
+
 ```
-for host in controller-0 node-0 node-1 node-2; do
-  scp ca.pem kubernetes-key.pem kubernetes.pem nerditup@k8s-${host}:~
+for host in k8s-node-0 k8s-node-1 k8s-node-2; do
+  scp ca.pem "${host}"-key.pem "${host}".pem nerditup@${host}:~
+done
+```
+
+Copy the appropriate certificates and private keys to each controller host:
+
+```
+for host in k8s-controller-0; do
+  scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
+		service-account-key.pem service-account.pem nerditup@${host}:~
 done
 ```
 
