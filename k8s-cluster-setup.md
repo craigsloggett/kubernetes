@@ -293,7 +293,7 @@ for host in k8s-node-0 k8s-node-1 k8s-node-2; do
 done
 ```
 
-Copy the appropriate certificates and private keys to each controller host:
+Distribute the appropriate certificates and private keys to each controller host:
 
 ```
 for host in k8s-controller-0; do
@@ -301,6 +301,36 @@ for host in k8s-controller-0; do
     service-account-key.pem service-account.pem nerditup@${host}:~
 done
 ```
+
+---
+
+## Provisioning Kubernetes Configuration Files for Authentication
+
+Everything here is to be done on a local machine.
+
+### Genertaing TLS Certs
+
+All certificates are generating using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/certs/generate-kubeconfig.sh
+
+### Distribute the Kubernetes Configuration Files
+
+Distribute the `kubelet` and `kube-proxy` kubeconfig files to each node host:
+
+```
+for host in k8s-node-0 k8s-node-1 k8s-node-2; do
+  scp ${host}.kubeconfig kube-proxy.kubeconfig nerditup@${host}:~
+done
+```
+
+Distribute the `kube-controller-manager` and `kube-scheduler` kubeconfig files to each controller host:
+
+```
+for host in k8s-controller-0; do
+  scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig nerditup@${host}:~
+done
+```
+
 
 ---
 # WIP from here on...
