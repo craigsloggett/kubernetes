@@ -6,10 +6,7 @@ country="CA"
 province="Ontario"
 location="Hamilton"
 
-controller_hostnames=("k8s-controller-0")
 node_hostnames=("k8s-node-0" "k8s-node-1" "k8s-node-2")
-
-controller_0_ip="192.168.1.110"
 node_0_ip="192.168.1.120"
 node_1_ip="192.168.1.121"
 node_2_ip="192.168.1.122"

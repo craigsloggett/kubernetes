@@ -7,8 +7,10 @@
   "names": [
     {
       "C": "CA",
+      "ST": "Ontario",
       "L": "Hamilton",
-      "O": "system:nodes"
+      "O": "system:nodes",
+      "OU": "Kubernetes"
     }
   ]
 }

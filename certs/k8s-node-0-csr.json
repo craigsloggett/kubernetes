@@ -1,5 +1,5 @@
 {
-  "CN": "service-accounts",
+  "CN": "system:node:k8s-node-0",
   "key": {
     "algo": "rsa",
     "size": 2048
@@ -7,8 +7,10 @@
   "names": [
     {
       "C": "CA",
+      "ST": "Ontario",
       "L": "Hamilton",
-      "O": "Kubernetes"
+      "O": "system:nodes",
+      "OU": "Kubernetes"
     }
   ]
 }
