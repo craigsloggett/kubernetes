@@ -236,7 +236,7 @@ sudo mv cfssl cfssljson /usr/local/bin
 
 ## Provisioning CA and Generating TLS Certs
 
-Everything here it to be done on a local machine.
+Everything here is to be done on a local machine.
 
 ### Authentication
 
