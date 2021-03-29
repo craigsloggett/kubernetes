@@ -13,7 +13,6 @@ Here are the software choices for this configuration:
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
-# NOTE
 ```
 Make sure --anonymous-auth=false is set on the API server.
 ```
