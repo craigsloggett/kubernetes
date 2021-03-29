@@ -298,7 +298,7 @@ Copy the appropriate certificates and private keys to each controller host:
 ```
 for host in k8s-controller-0; do
   scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-		service-account-key.pem service-account.pem nerditup@${host}:~
+    service-account-key.pem service-account.pem nerditup@${host}:~
 done
 ```
 
