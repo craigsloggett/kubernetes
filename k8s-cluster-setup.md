@@ -390,7 +390,7 @@ sudo chmod 700 /var/lib/etcd
 sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd/
 ```
 
-Generate the `etcd` system unit file.
+### Generate the `etcd` system unit file.
 
 ```
 controller_hostname="k8s-controller-0"
@@ -431,52 +431,27 @@ WantedBy=multi-user.target
 EOF
 ```
 
-
-
----
-# WIP from here on...
-
+```
+sudo chown root:root etcd.service
+sudo mv etcd.service /etc/systemd/system/
 ```
 
-#systemctl enable systemd-resolved.service
-#systemctl start systemd-resolved.service
+### Enable and start the `etcd` service.
 
-cat <<EOF | tee /etc/systemd/system/etcd.service
-[Unit]
-Description=etcd
-Documentation=https://github.com/coreos
+```
+sudo systemctl daemon-reload
+sudo systemctl enable etcd.service
+sudo systemctl start etcd.service
+```
 
-[Service]
-Environment="ETCD_UNSUPPORTED_ARCH=arm64"
-Type=notify
-ExecStart=/usr/local/bin/etcd \\
-  --name k8s-master-1 \\
-  --cert-file=/etc/etcd/kubernetes.pem \\
-  --key-file=/etc/etcd/kubernetes-key.pem \\
-  --peer-cert-file=/etc/etcd/kubernetes.pem \\
-  --peer-key-file=/etc/etcd/kubernetes-key.pem \\
-  --trusted-ca-file=/etc/etcd/ca.pem \\
-  --peer-trusted-ca-file=/etc/etcd/ca.pem \\
-  --peer-client-cert-auth \\
-  --client-cert-auth \\
-  --initial-advertise-peer-urls https://192.168.1.200:2380 \\
-  --listen-peer-urls https://192.168.1.200:2380 \\
-  --listen-client-urls https://192.168.1.200:2379,https://127.0.0.1:2379 \\
-  --advertise-client-urls https://192.168.1.200:2379 \\
-  --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster k8s-master-1=https://192.168.1.200:2380 \\
-  --initial-cluster-state new \\
-  --data-dir=/var/lib/etcd
-Restart=on-failure
-RestartSec=5
+### Verify
 
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable etcd
-systemctl start etcd
+```
+sudo ETCDCTL_API=3 etcdctl member list \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=${etcd_pki_directory}/ca.pem \
+  --cert=${etcd_pki_directory}/kubernetes.pem \
+  --key=${etcd_pki_directory}/kubernetes-key.pem
 ```
 
 ---
@@ -509,59 +484,6 @@ Define the cluster role that the Calico CNI plugin will use, then bind it to the
 
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
 
-# On k8s-master-1
-
-wget -q --show-progress --https-only --timestamping "https://github.com/etcd-io/etcd/releases/download/v3.4.15/etcd-v3.4.15-linux-amd64.tar"
-
-tar -xvf etcd-v3.4.15-linux-arm64.tar
-mv etcd-v3.4.15-linux-arm64/etcd* /usr/local/bin
-
-
-mkdir -p /etc/etcd /var/lib/etcd
-chmod 700 /var/lib/etcd
-cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/
-
-systemctl enable systemd-resolved.service
-systemctl start systemd-resolved.service
-
-cat <<EOF | tee /etc/systemd/system/etcd.service
-[Unit]
-Description=etcd
-Documentation=https://github.com/coreos
-
-[Service]
-Environment="ETCD_UNSUPPORTED_ARCH=arm64"
-Type=notify
-ExecStart=/usr/local/bin/etcd \
-  --name k8s-master-1 \
-  --cert-file=/etc/etcd/kubernetes.pem \
-  --key-file=/etc/etcd/kubernetes-key.pem \
-  --peer-cert-file=/etc/etcd/kubernetes.pem \
-  --peer-key-file=/etc/etcd/kubernetes-key.pem \
-  --trusted-ca-file=/etc/etcd/ca.pem \
-  --peer-trusted-ca-file=/etc/etcd/ca.pem \
-  --peer-client-cert-auth \
-  --client-cert-auth \
-  --initial-advertise-peer-urls https://192.168.1.200:2380 \
-  --listen-peer-urls https://192.168.1.200:2380 \
-  --listen-client-urls https://192.168.1.200:2379,https://127.0.0.1:2379 \
-  --advertise-client-urls https://192.168.1.200:2379 \
-  --initial-cluster-token etcd-cluster-0 \
-  --initial-cluster k8s-master-1=https://192.168.1.200:2380 \
-  --initial-cluster-state new \
-  --data-dir=/var/lib/etcd
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable etcd
-systemctl start etcd
-
-# Check /var/log/syslog for errors
 
 
 mkdir -p /etc/kubernetes/config
