@@ -377,7 +377,7 @@ done
 The following is to be run on the controller nodes.
 
 ```
-wget "https://github.com/etcd-io/etcd/releases/download/v3.4.15/etcd-v3.4.15-linux-amd64.tar"
+wget "https://github.com/etcd-io/etcd/releases/download/v3.4.15/etcd-v3.4.15-linux-arm64.tar"
 tar -xvf etcd-v3.4.15-linux-arm64.tar
 sudo mv etcd-v3.4.15-linux-arm64/etcd* /usr/local/bin
 ```
@@ -389,6 +389,52 @@ sudo mkdir -p /etc/kubernetes/pki/etcd /var/lib/etcd
 sudo chmod 700 /var/lib/etcd
 sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd/
 ```
+
+Generate the `etcd` system unit file.
+
+```
+controller_hostname="k8s-controller-0"
+controller_ip="192.168.1.110"
+etcd_pki_directory="/etc/kubernetes/pki/etcd"
+
+cat /etc/systemd/system/etcd.service << EOF
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos
+
+[Service]
+Environment="ETCD_UNSUPPORTED_ARCH=arm64"
+Type=notify
+ExecStart=/usr/local/bin/etcd \
+  --name "${controller_hostname}" \
+  --cert-file="${etcd_pki_directory}"/kubernetes.pem \
+  --key-file="${etcd_pki_directory}"/kubernetes-key.pem \
+  --peer-cert-file="${etcd_pki_directory}"/kubernetes.pem \
+  --peer-key-file="${etcd_pki_directory}"/kubernetes-key.pem \
+  --trusted-ca-file="${etcd_pki_directory}"/ca.pem \
+  --peer-trusted-ca-file="${etcd_pki_directory}"/ca.pem \
+  --peer-client-cert-auth \
+  --client-cert-auth \
+  --initial-advertise-peer-urls https://"${controller_ip}":2380 \
+  --listen-peer-urls https://"${controller_ip}":2380 \
+  --listen-client-urls https://"${controller_ip}":2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://"${controller_ip}":2379 \
+  --initial-cluster-token etcd-cluster-0 \
+  --initial-cluster "${controller_hostname}"=https://"${controller_ip}":2380 \
+  --initial-cluster-state new \
+  --data-dir=/var/lib/etcd
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+
+
+---
+# WIP from here on...
 
 ```
 

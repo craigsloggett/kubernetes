@@ -257,7 +257,7 @@ cfssl gencert \
 
 # The Service Account Key Pair
 
-cat > service-account-csr.json <<EOF
+cat > service-account-csr.json <<- EOF
 	{
 	  "CN": "service-accounts",
 	  "key": {
