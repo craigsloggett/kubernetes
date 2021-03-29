@@ -397,7 +397,7 @@ controller_hostname="k8s-controller-0"
 controller_ip="192.168.1.110"
 etcd_pki_directory="/etc/kubernetes/pki/etcd"
 
-cat /etc/systemd/system/etcd.service << EOF
+cat > /etc/systemd/system/etcd.service << EOF
 [Unit]
 Description=etcd
 Documentation=https://github.com/coreos
