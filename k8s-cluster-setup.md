@@ -11,6 +11,16 @@ Here are the software choices for this configuration:
    - runc
    - kubenet
 
+RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
+
+From the documentation:
+> It is recommended that you use the Node and RBAC authorizers together, in combination with the NodeRestriction admission plugin.
+
+# NOTE
+```
+Make sure --anonymous-auth=false is set on the API server.
+```
+
 `kubenet` has been chosen as the network provider to simplify the configuration required to get a 
 bare metal MVP cluster. Using this guide, I plan on automating this process with POSIX shell scripts
 to keep the dependencies as small as possible.
@@ -230,6 +240,8 @@ sudo mv cfssl cfssljson /usr/local/bin
 ## Provisioning CA and Generating TLS Certs
 
 Everything here it to be done on a local machine.
+
+In order to implement RBAC 
 
 I have chosen to create a single certificate for all TLS communication. In a production cluster, it 
 is recommended that a TLS certificate be generated for each component.
