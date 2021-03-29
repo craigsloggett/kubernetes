@@ -13,9 +13,6 @@ Here are the software choices for this configuration:
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
-From the documentation:
-> It is recommended that you use the Node and RBAC authorizers together, in combination with the NodeRestriction admission plugin.
-
 # NOTE
 ```
 Make sure --anonymous-auth=false is set on the API server.
