@@ -267,7 +267,7 @@ https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/
 For details on node authorization, refer to this document:
 https://kubernetes.io/docs/reference/access-authn-authz/node/
 
-> In order to be authorized by the Node authorizer, kubelets must use a credential that identifies them as being in the system:nodes group, with a username of `system:node:<nodeName>`.
+> In order to be authorized by the Node authorizer, kubelets must use a credential that identifies them as being in the `system:nodes` group, with a username of `system:node:<nodeName>`.
 
 When generating the kubelet client certificates, the CN must be `system:node:<nodeName>` where 
 `<nodeName>` will be the hostname of the node the certificate is being generated for.
