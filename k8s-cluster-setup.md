@@ -33,12 +33,15 @@ the latest best practices.
  - CFSSL: `1.5.0`
  - cri-o: 
  - runc: 
+ - etcd: `3.4.15`
 
 ## Network CIDRs
 
  - Host CIDR: `192.168.1.0/16`
  - Cluster CIDR: `10.200.0.0/16`
  - Service Cluster CIDR: `10.32.0.0/16`
+
+--- 
 
 ## Preparing the Hardware
 
@@ -206,6 +209,8 @@ net.ipv4.ip_forward = 1
 
 10. Reboot all machines.
 
+---
+
 ## Install the Client Tools (Locally)
 
 Everything here is to be done on a local machine (macOS is used here).
@@ -331,6 +336,8 @@ for host in k8s-controller-0; do
 done
 ```
 
+---
+
 ## Generating the Data Encryption Config and Key
 
 Generate the encryption key used to encrypt cluster data at rest.
@@ -364,6 +371,69 @@ done
 ```
 
 ---
+
+## Bootstrapping the etcd Cluster
+
+The following is to be run on the controller nodes.
+
+```
+wget "https://github.com/etcd-io/etcd/releases/download/v3.4.15/etcd-v3.4.15-linux-amd64.tar"
+tar -xvf etcd-v3.4.15-linux-arm64.tar
+sudo mv etcd-v3.4.15-linux-arm64/etcd* /usr/local/bin
+```
+
+All certificates will be kept in `/etc/kubernetes/pki/etcd`.
+
+```
+sudo mkdir -p /etc/kubernetes/pki/etcd /var/lib/etcd
+sudo chmod 700 /var/lib/etcd
+sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd/
+```
+
+```
+
+#systemctl enable systemd-resolved.service
+#systemctl start systemd-resolved.service
+
+cat <<EOF | tee /etc/systemd/system/etcd.service
+[Unit]
+Description=etcd
+Documentation=https://github.com/coreos
+
+[Service]
+Environment="ETCD_UNSUPPORTED_ARCH=arm64"
+Type=notify
+ExecStart=/usr/local/bin/etcd \
+  --name k8s-master-1 \
+  --cert-file=/etc/etcd/kubernetes.pem \
+  --key-file=/etc/etcd/kubernetes-key.pem \
+  --peer-cert-file=/etc/etcd/kubernetes.pem \
+  --peer-key-file=/etc/etcd/kubernetes-key.pem \
+  --trusted-ca-file=/etc/etcd/ca.pem \
+  --peer-trusted-ca-file=/etc/etcd/ca.pem \
+  --peer-client-cert-auth \
+  --client-cert-auth \
+  --initial-advertise-peer-urls https://192.168.1.200:2380 \
+  --listen-peer-urls https://192.168.1.200:2380 \
+  --listen-client-urls https://192.168.1.200:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls https://192.168.1.200:2379 \
+  --initial-cluster-token etcd-cluster-0 \
+  --initial-cluster k8s-master-1=https://192.168.1.200:2380 \
+  --initial-cluster-state new \
+  --data-dir=/var/lib/etcd
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable etcd
+systemctl start etcd
+```
+
+---
 # WIP from here on...
 
 Overall steps:
@@ -392,384 +462,6 @@ Define the cluster role that the Calico CNI plugin will use, then bind it to the
 
 
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
-
-```
-for instance in k8s-node-1 k8s-node-2 k8s-node-3; do
-cat > ${instance}-csr.json <<EOF
-{
-  "CN": "system:node:${instance}",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "system:nodes"
-    }
-  ]
-}
-EOF
-
-INTERNAL_IP=$('192.168.1.201', '192.168.1.202', '192.168.1.203')
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=ca-config.json \
-  -hostname=${instance},${INTERNAL_IP} \
-  -profile=kubernetes \
-  ${instance}-csr.json | cfssljson -bare ${instance}
-done
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -hostname=k8s-node-1,192.168.1.201 \
-  -profile=kubernetes \
-  config/kubelet-client-certificates/k8s-node-1-csr.json | cfssljson -bare k8s-node-1
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -hostname=k8s-node-2,192.168.1.202 \
-  -profile=kubernetes \
-  config/kubelet-client-certificates/k8s-node-2-csr.json | cfssljson -bare k8s-node-2
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -hostname=k8s-node-3,192.168.1.203 \
-  -profile=kubernetes \
-  config/kubelet-client-certificates/k8s-node-3-csr.json | cfssljson -bare k8s-node-3
-
-
-
-
-cat > kube-controller-manager-csr.json <<EOF
-{
-  "CN": "system:kube-controller-manager",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "system:kube-controller-manager"
-    }
-  ]
-}
-EOF
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -profile=kubernetes \
-  config/controller-manager-client-certificate/kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
-
-
-
-cat > kube-proxy-csr.json <<EOF
-{
-  "CN": "system:kube-proxy",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "system:node-proxier"
-    }
-  ]
-}
-EOF
-
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -profile=kubernetes \
-  config/kube-proxy-client-certificate/kube-proxy-csr.json | cfssljson -bare kube-proxy
-
-
-
-cat > kube-scheduler-csr.json <<EOF
-{
-  "CN": "system:kube-scheduler",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "system:kube-scheduler"
-    }
-  ]
-}
-EOF
-
-
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -profile=kubernetes \
-  config/scheduler-client-certificate/kube-scheduler-csr.json | cfssljson -bare kube-scheduler
-
-
-
-
-{
-
-KUBERNETES_HOSTNAMES=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.default.svc.cluster,kubernetes.svc.cluster.local
-
-cat > config/api-server-certificate/kubernetes-csr.json <<EOF
-{
-  "CN": "kubernetes",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "Kubernetes"
-    }
-  ]
-}
-EOF
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -hostname=10.32.0.1,192.168.1.200,23.92.128.203,127.0.0.1,${KUBERNETES_HOSTNAMES} \
-  -profile=kubernetes \
-  config/api-server-certificate/kubernetes-csr.json | cfssljson -bare kubernetes
-
-}
-
-
-
-
-
-{
-
-cat > config/service-account-key-pair/service-account-csr.json <<EOF
-{
-  "CN": "service-accounts",
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CA",
-      "L": "Hamilton",
-      "O": "Kubernetes"
-    }
-  ]
-}
-EOF
-
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=config/certificate-authority/ca-config.json \
-  -profile=kubernetes \
-  config/service-account-key-pair/service-account-csr.json | cfssljson -bare service-account
-
-}
-
-
-
-for instance in k8s-node-1 k8s-node-2 k8s-node-3; do
-  scp ca.pem ${instance}-key.pem ${instance}.pem root@${instance}:~/
-done
-
-for instance in k8s-master-1; do
-  scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem service-account-key.pem service-account.pem root@${instance}:~/
-done
-
-
-for instance in controller-0 controller-1 controller-2; do
-  gcloud compute scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-    service-account-key.pem service-account.pem ${instance}:~/
-done
-
-
-
-
-
-
-for instance in k8s-node-1 k8s-node-2 k8s-node-3; do
-  kubectl config set-cluster k8s-pi-cluster \
-    --certificate-authority=../../certs/ca.pem \
-    --embed-certs=true \
-    --server=https://192.168.1.200:6443 \
-    --kubeconfig=${instance}.kubeconfig
-
-  kubectl config set-credentials system:node:${instance} \
-    --client-certificate=../../certs/${instance}.pem \
-    --client-key=../../certs/${instance}-key.pem \
-    --embed-certs=true \
-    --kubeconfig=${instance}.kubeconfig
-
-  kubectl config set-context default \
-    --cluster=k8s-pi-cluster \
-    --user=system:node:${instance} \
-    --kubeconfig=${instance}.kubeconfig
-
-  kubectl config use-context default --kubeconfig=${instance}.kubeconfig
-done
-
-
-
-
-{
-  kubectl config set-cluster k8s-pi-cluster \
-    --certificate-authority=../../certs/ca.pem \
-    --embed-certs=true \
-    --server=https://192.168.1.200:6443 \
-    --kubeconfig=kube-proxy.kubeconfig
-
-  kubectl config set-credentials system:kube-proxy \
-    --client-certificate=../../certs/kube-proxy.pem \
-    --client-key=../../certs/kube-proxy-key.pem \
-    --embed-certs=true \
-    --kubeconfig=kube-proxy.kubeconfig
-
-  kubectl config set-context default \
-    --cluster=k8s-pi-cluster \
-    --user=system:kube-proxy \
-    --kubeconfig=kube-proxy.kubeconfig
-
-  kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
-}
-
-
-
-{
-  kubectl config set-cluster k8s-pi-cluster \
-    --certificate-authority=../../certs/ca.pem \
-    --embed-certs=true \
-    --server=https://127.0.0.1:6443 \
-    --kubeconfig=kube-controller-manager.kubeconfig
-
-  kubectl config set-credentials system:kube-controller-manager \
-    --client-certificate=../../certs/kube-controller-manager.pem \
-    --client-key=../../certs/kube-controller-manager-key.pem \
-    --embed-certs=true \
-    --kubeconfig=kube-controller-manager.kubeconfig
-
-  kubectl config set-context default \
-    --cluster=k8s-pi-cluster \
-    --user=system:kube-controller-manager \
-    --kubeconfig=kube-controller-manager.kubeconfig
-
-  kubectl config use-context default --kubeconfig=kube-controller-manager.kubeconfig
-}
-
-
-
-
-{
-  kubectl config set-cluster k8s-pi-cluster \
-    --certificate-authority=../../certs/ca.pem \
-    --embed-certs=true \
-    --server=https://127.0.0.1:6443 \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-  kubectl config set-credentials system:kube-scheduler \
-    --client-certificate=../../certs/kube-scheduler.pem \
-    --client-key=../../certs/kube-scheduler-key.pem \
-    --embed-certs=true \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-  kubectl config set-context default \
-    --cluster=k8s-pi-cluster \
-    --user=system:kube-scheduler \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-  kubectl config use-context default --kubeconfig=kube-scheduler.kubeconfig
-}
-
-
-{
-  kubectl config set-cluster k8s-pi-cluster \
-    --certificate-authority=../../certs/ca.pem \
-    --embed-certs=true \
-    --server=https://127.0.0.1:6443 \
-    --kubeconfig=admin.kubeconfig
-
-  kubectl config set-credentials admin \
-    --client-certificate=../../certs/admin.pem \
-    --client-key=../../certs/admin-key.pem \
-    --embed-certs=true \
-    --kubeconfig=admin.kubeconfig
-
-  kubectl config set-context default \
-    --cluster=k8s-pi-cluster \
-    --user=admin \
-    --kubeconfig=admin.kubeconfig
-
-  kubectl config use-context default --kubeconfig=admin.kubeconfig
-}
-
-
-
-for instance in k8s-node-1 k8s-node-2 k8s-node-3; do
-  scp config/kubelet/${instance}.kubeconfig config/kube-proxy/kube-proxy.kubeconfig root@${instance}:~/
-done
-
-
-for instance in k8s-master-1; do
-  scp config/kube-scheduler/admin.kubeconfig config/kube-controller-manager/kube-controller-manager.kubeconfig config/kube-scheduler/kube-scheduler.kubeconfig root@${instance}:~/
-done
-
-
-
-
-
-ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
-
-cat > encryption-config.yaml <<EOF
-kind: EncryptionConfig
-apiVersion: v1
-resources:
-  - resources:
-      - secrets
-    providers:
-      - aescbc:
-          keys:
-            - name: key1
-              secret: ${ENCRYPTION_KEY}
-      - identity: {}
-EOF
-
-scp encryption-config.yaml root@k8s-master-1:~/
-
-
-
 
 # On k8s-master-1
 
