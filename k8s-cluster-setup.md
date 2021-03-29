@@ -331,6 +331,37 @@ for host in k8s-controller-0; do
 done
 ```
 
+## Generating the Data Encryption Config and Key
+
+Generate the encryption key used to encrypt cluster data at rest.
+
+```
+ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
+```
+
+```
+cat > encryption-config.yaml << EOF
+kind: EncryptionConfig
+apiVersion: v1
+resources:
+  - resources:
+      - secrets
+    providers:
+      - aescbc:
+          keys:
+            - name: key1
+              secret: ${ENCRYPTION_KEY}
+      - identity: {}
+EOF
+```
+
+Distribute the `encryption-config` file to each controller host:
+
+```
+for host in k8s-controller-0; do
+  scp encryption-config.yaml nerditup@${host}:~
+done
+```
 
 ---
 # WIP from here on...
