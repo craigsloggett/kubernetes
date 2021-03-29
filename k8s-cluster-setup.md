@@ -208,7 +208,7 @@ net.ipv4.ip_forward = 1
 
 ## Install the Client Tools (Locally)
 
-Everything here it to be done on a local machine (macOS is used here).
+Everything here is to be done on a local machine (macOS is used here).
 
 ```
 export KUBE_VERSION=1.20.5
