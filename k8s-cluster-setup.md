@@ -25,6 +25,8 @@ In the future, I would like to swap `kubenet` for `flannel` and then ultimately 
 and network policies configured with the goal of provisioning a "production ready" cluster following
 the latest best practices.
 
+My local machine is a MacBook.
+
 ## Versions
 
  - Debian: `10.8`
@@ -213,7 +215,7 @@ net.ipv4.ip_forward = 1
 
 ## Install the Client Tools (Locally)
 
-Everything here is to be done on a local machine (macOS is used here).
+The following is to be run on a local machine.
 
 ```
 export KUBE_VERSION=1.20.5
@@ -241,7 +243,7 @@ sudo mv cfssl cfssljson /usr/local/bin
 
 ## Provisioning CA and Generating TLS Certs
 
-Everything here is to be done on a local machine.
+The following is to be run on a local machine.
 
 ### Authentication
 
@@ -311,7 +313,7 @@ done
 
 ## Provisioning Kubernetes Configuration Files for Authentication
 
-Everything here is to be done on a local machine.
+The following is to be run on a local machine.
 
 ### Genertaing TLS Certs
 
@@ -452,6 +454,41 @@ sudo ETCDCTL_API=3 etcdctl member list \
   --cacert=${etcd_pki_directory}/ca.pem \
   --cert=${etcd_pki_directory}/kubernetes.pem \
   --key=${etcd_pki_directory}/kubernetes-key.pem
+```
+
+---
+
+## Bootstrapping the Kubernetes Control Plane
+
+### Provision the Kubernetes Control Plane
+
+#### Download and Install the Kubernetes Controller Binaries
+
+```
+kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
+wget \
+  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-apiserver" \
+  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-controller-manager" \
+  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-scheduler" \
+  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kubectl"
+```
+
+```
+chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
+sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+```
+
+#### Configure the Kubernetes API Server
+
+Copy the TLS certificates and encryption configuration to `/etc/kubernetes/pki`.
+
+```
+sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
+  service-account-key.pem service-account.pem \
+  /etc/kubernetes/pki/
+```
+```
+sudo mv encryption-config.yaml /etc/kubernetes/
 ```
 
 ---
