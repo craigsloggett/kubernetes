@@ -392,13 +392,166 @@ sudo chmod 700 /var/lib/etcd
 sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd/
 ```
 
-### Generate the `etcd` system unit file.
+### Generate the `etcd` configuration file.
 
 ```
 controller_hostname="k8s-controller-0"
 controller_ip="192.168.1.110"
 etcd_pki_directory="/etc/kubernetes/pki/etcd"
 
+cat > etcd-conf.yaml <<- EOF
+	# This is the configuration file for the etcd server.
+	
+	# Human-readable name for this member.
+	name: '${controller_hostname}'
+	
+	# Path to the data directory.
+	data-dir: '/var/lib/etcd'
+	
+	# Path to the dedicated wal directory.
+	wal-dir:
+	
+	# Number of committed transactions to trigger a snapshot to disk.
+	snapshot-count: 10000
+	
+	# Time (in milliseconds) of a heartbeat interval.
+	heartbeat-interval: 100
+	
+	# Time (in milliseconds) for an election to timeout.
+	election-timeout: 1000
+	
+	# Raise alarms when backend size exceeds the given quota. 0 means use the
+	# default quota.
+	quota-backend-bytes: 0
+	
+	# List of comma separated URLs to listen on for peer traffic.
+	listen-peer-urls: 'https://192.168.1.110:2380'
+	
+	# List of comma separated URLs to listen on for client traffic.
+	listen-client-urls: 'https://192.168.1.110:2379,https://127.0.0.1:2379'
+	
+	# Maximum number of snapshot files to retain (0 is unlimited).
+	max-snapshots: 5
+	
+	# Maximum number of wal files to retain (0 is unlimited).
+	max-wals: 5
+	
+	# Comma-separated white list of origins for CORS (cross-origin resource sharing).
+	cors:
+	
+	# List of this member's peer URLs to advertise to the rest of the cluster.
+	# The URLs needed to be a comma-separated list.
+	initial-advertise-peer-urls: 'https://192.168.1.110:2380'
+	
+	# List of this member's client URLs to advertise to the public.
+	# The URLs needed to be a comma-separated list.
+	advertise-client-urls: 'https://192.168.1.110:2379'
+	
+	# Discovery URL used to bootstrap the cluster.
+	discovery:
+	
+	# Valid values include 'exit', 'proxy'
+	discovery-fallback: 'proxy'
+	
+	# HTTP proxy to use for traffic to discovery service.
+	discovery-proxy:
+	
+	# DNS domain used to bootstrap initial cluster.
+	discovery-srv:
+	
+	# Initial cluster configuration for bootstrapping.
+	initial-cluster: '${controller_hostname}=https://192.168.1.110:2380'
+	
+	# Initial cluster token for the etcd cluster during bootstrap.
+	initial-cluster-token: 'etcd-cluster'
+	
+	# Initial cluster state ('new' or 'existing').
+	initial-cluster-state: 'new'
+	
+	# Reject reconfiguration requests that would cause quorum loss.
+	strict-reconfig-check: false
+	
+	# Accept etcd V2 client requests
+	enable-v2: true
+	
+	# Enable runtime profiling data via HTTP server
+	enable-pprof: true
+	
+	# Valid values include 'on', 'readonly', 'off'
+	proxy: 'off'
+	
+	# Time (in milliseconds) an endpoint will be held in a failed state.
+	proxy-failure-wait: 5000
+	
+	# Time (in milliseconds) of the endpoints refresh interval.
+	proxy-refresh-interval: 30000
+	
+	# Time (in milliseconds) for a dial to timeout.
+	proxy-dial-timeout: 1000
+	
+	# Time (in milliseconds) for a write to timeout.
+	proxy-write-timeout: 5000
+	
+	# Time (in milliseconds) for a read to timeout.
+	proxy-read-timeout: 0
+	
+	client-transport-security:
+	  # Path to the client server TLS cert file.
+	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
+	
+	  # Path to the client server TLS key file.
+	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
+	
+	  # Enable client cert authentication.
+	  client-cert-auth: true
+	
+	  # Path to the client server TLS trusted CA cert file.
+	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
+	
+	  # Client TLS using generated certificates
+	  auto-tls: false
+	
+	peer-transport-security:
+	  # Path to the peer server TLS cert file.
+	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
+	
+	  # Path to the peer server TLS key file.
+	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
+	
+	  # Enable peer client cert authentication.
+	  client-cert-auth: true
+	
+	  # Path to the peer server TLS trusted CA cert file.
+	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
+	
+	  # Peer TLS using generated certificates.
+	  auto-tls: false
+	
+	# Enable debug-level logging for etcd.
+	log-level: debug
+	
+	logger: zap
+	
+	# Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd.
+	log-outputs: [stderr]
+	
+	# Force to create a new one member cluster.
+	force-new-cluster: false
+	
+	auto-compaction-mode: periodic
+	auto-compaction-retention: '1'
+EOF
+```
+
+```
+sudo chown root:root etcd-conf.yaml
+sudo mkdir /etc/etcd
+sudo mv etcd-conf.yaml /etc/etcd/
+```
+
+### Generate the `etcd` system unit file.
+
+```
 cat > etcd.service << EOF
 [Unit]
 Description=etcd
@@ -408,23 +561,7 @@ Documentation=https://github.com/coreos
 Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 Type=notify
 ExecStart=/usr/local/bin/etcd \\
-  --name ${controller_hostname} \\
-  --cert-file=${etcd_pki_directory}/kubernetes.pem \\
-  --key-file=${etcd_pki_directory}/kubernetes-key.pem \\
-  --peer-cert-file=${etcd_pki_directory}/kubernetes.pem \\
-  --peer-key-file=${etcd_pki_directory}/kubernetes-key.pem \\
-  --trusted-ca-file=${etcd_pki_directory}/ca.pem \\
-  --peer-trusted-ca-file=${etcd_pki_directory}/ca.pem \\
-  --peer-client-cert-auth \\
-  --client-cert-auth \\
-  --initial-advertise-peer-urls https://${controller_ip}:2380 \\
-  --listen-peer-urls https://${controller_ip}:2380 \\
-  --listen-client-urls https://${controller_ip}:2379,https://127.0.0.1:2379 \\
-  --advertise-client-urls https://${controller_ip}:2379 \\
-  --initial-cluster-token etcd-cluster-0 \\
-  --initial-cluster ${controller_hostname}=https://${controller_ip}:2380 \\
-  --initial-cluster-state new \\
-  --data-dir=/var/lib/etcd
+  --config-file /etc/etcd/etcd-conf.yaml
 Restart=on-failure
 RestartSec=5
 
