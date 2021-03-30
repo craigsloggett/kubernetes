@@ -462,6 +462,9 @@ sudo ETCDCTL_API=3 etcdctl member list \
 
 ### Provision the Kubernetes Control Plane
 
+All service and kubeconfig files are generated using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
+
 #### Download and Install the Kubernetes Controller Binaries
 
 ```
@@ -489,6 +492,22 @@ sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
 ```
 ```
 sudo mv encryption-config.yaml /etc/kubernetes/
+```
+
+#### Configure the Kubernetes Controller Manager
+
+Move the `kube-controller-manager` kubeconfig to `/etc/kubernetes`.
+
+```
+sudo mv kube-controller-manager.kubeconfig /etc/kubernetes/
+```
+
+#### Configure the Kubernetes Scheduler
+
+Move the `kube-scheduler` kubeconfig to `/etc/kubernetes`.
+
+```
+sudo mv kube-scheduler.kubeconfig /etc/kubernetes/
 ```
 
 ---
