@@ -12,6 +12,7 @@ ExecStart=/usr/local/bin/kube-controller-manager \
   --kubeconfig=/etc/kubernetes/kubeconfig/kube-controller-manager.kubeconfig \
   --leader-elect=true \
   --root-ca-file=/etc/kubernetes/pki/ca.pem \
+  --node-cidr-mask-size=23 \
   --service-account-private-key-file=/etc/kubernetes/pki/service-account-key.pem \
   --service-cluster-ip-range=10.32.0.0/24 \
   --use-service-account-credentials=true \

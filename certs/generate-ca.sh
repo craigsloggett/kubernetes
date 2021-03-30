@@ -6,6 +6,8 @@ country="CA"
 province="Ontario"
 location="Hamilton"
 
+controller_0_ip="192.168.1.110"
+
 node_hostnames=("k8s-node-0" "k8s-node-1" "k8s-node-2")
 node_0_ip="192.168.1.120"
 node_1_ip="192.168.1.121"
@@ -236,20 +238,11 @@ cat > kubernetes-csr.json <<- EOF
 	}
 EOF
 
-
-# Put the node IPs/hostnames on a single line, comma seperated.
-for node_hostname in "${node_hostnames[@]}"; do
-	# Get the variable name containing the IP of the given hostname.
-	node_ip_ref="$( printf '%s\n' "${node_hostname##k8s-}_ip" | tr '-' '_' )"
-	# Generate the lists of IPs and hostnames.
-	node_ip_list="${node_ip_list:+${node_ip_list},}${!node_ip_ref}"
-done
-
 cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
-  -hostname="${internal_cluster_dns_ip}","${node_ip_list}",127.0.0.1,"${KUBERNETES_HOSTNAMES}" \
+  -hostname="${internal_cluster_dns_ip}","${controller_0_ip}",127.0.0.1,"${KUBERNETES_HOSTNAMES}" \
   -profile=kubernetes \
   kubernetes-csr.json | cfssljson -bare kubernetes
 

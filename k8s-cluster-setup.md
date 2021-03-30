@@ -551,6 +551,14 @@ sudo chown root:root /etc/systemd/system/kube-scheduler.service
 sudo chown -R root:root /etc/kubernetes
 ```
 
+#### Start the Services
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
+sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
+```
+
 ---
 # WIP from here on...
 

@@ -2,6 +2,7 @@
 
 # Configuration Parameters
 
+etcd_server_ip="192.168.1.110"
 api_server_ip="192.168.1.110"
 pod_ip_range="10.200.0.0/16"
 service_ip_range="10.32.0.0/24"
@@ -23,7 +24,7 @@ cat > kube-apiserver.service <<- EOF
 	ExecStart=/usr/local/bin/kube-apiserver \\
 	  --advertise-address=${api_server_ip} \\
 	  --allow-privileged=true \\
-	  --apiserver-count=3 \\
+	  --apiserver-count=1 \\
 	  --audit-log-maxage=30 \\
 	  --audit-log-maxbackup=3 \\
 	  --audit-log-maxsize=100 \\
@@ -35,7 +36,7 @@ cat > kube-apiserver.service <<- EOF
 	  --etcd-cafile=${pki_directory}/ca.pem \\
 	  --etcd-certfile=${pki_directory}/kubernetes.pem \\
 	  --etcd-keyfile=${pki_directory}/kubernetes-key.pem \\
-	  --etcd-servers=https://10.240.0.10:2379,https://10.240.0.11:2379,https://10.240.0.12:2379 \\
+	  --etcd-servers=https://${etcd_server_ip}:2379 \\
 	  --event-ttl=1h \\
 	  --encryption-provider-config=${config_directory}/encryption-config.yaml \\
 	  --kubelet-certificate-authority=${pki_directory}/ca.pem \\
@@ -44,6 +45,8 @@ cat > kube-apiserver.service <<- EOF
 	  --kubelet-https=true \\
 	  --runtime-config='api/all=true' \\
 	  --service-account-key-file=${pki_directory}/service-account.pem \\
+	  --service-account-signing-key-file=${pki_directory}/service-account-key.pem \\
+	  --service-account-issuer=api \\
 	  --service-cluster-ip-range=${service_ip_range} \\
 	  --service-node-port-range=30000-32767 \\
 	  --tls-cert-file=${pki_directory}/kubernetes.pem \\
@@ -75,6 +78,7 @@ cat > kube-controller-manager.service <<- EOF
 	  --kubeconfig=${kubeconfig_directory}/kube-controller-manager.kubeconfig \\
 	  --leader-elect=true \\
 	  --root-ca-file=${pki_directory}/ca.pem \\
+	  --node-cidr-mask-size=23 \\
 	  --service-account-private-key-file=${pki_directory}/service-account-key.pem \\
 	  --service-cluster-ip-range=${service_ip_range} \\
 	  --use-service-account-credentials=true \\
