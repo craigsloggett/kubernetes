@@ -512,6 +512,7 @@ sudo mv encryption-config.yaml /etc/kubernetes/
 
 ```
 sudo mv kube-apiserver.service /etc/systemd/system/
+sudo chown root:root /etc/systemd/system/kube-apiserver.service
 ```
 
 #### Configure the Kubernetes Controller Manager
@@ -524,6 +525,7 @@ sudo mv kube-controller-manager.kubeconfig /etc/kubernetes/kubeconfig
 
 ```
 sudo mv kube-controller-manager.service /etc/systemd/system/
+sudo chown root:root /etc/systemd/system/kube-controller-manager.service
 ```
 
 #### Configure the Kubernetes Scheduler
@@ -540,6 +542,13 @@ sudo mv kube-scheduler.yaml /etc/kubernetes/
 
 ```
 sudo mv kube-scheduler.service /etc/systemd/system/
+sudo chown root:root /etc/systemd/system/kube-scheduler.service
+```
+
+#### Update Ownership on Configuration Files
+
+```
+sudo chown -R root:root /etc/kubernetes
 ```
 
 ---
