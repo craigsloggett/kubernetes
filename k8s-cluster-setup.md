@@ -465,6 +465,15 @@ sudo ETCDCTL_API=3 etcdctl member list \
 All service and kubeconfig files are generated using the script found here: 
 https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
 
+#### Distribute the Configuration Files
+
+```
+for host in k8s-controller-0; do
+  scp kube-apiserver.service kube-controller-manager.service \
+    kube-scheduler.service kube-scheduler.yaml nerditup@${host}:~
+done
+```
+
 #### Download and Install the Kubernetes Controller Binaries
 
 ```
@@ -481,6 +490,12 @@ chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
 sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
 ```
 
+#### Prepare the Configuration Directory
+
+```
+sudo mkdir -p /etc/kubernetes/kubeconfig
+```
+
 #### Configure the Kubernetes API Server
 
 Copy the TLS certificates and encryption configuration to `/etc/kubernetes/pki`.
@@ -490,24 +505,41 @@ sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
   service-account-key.pem service-account.pem \
   /etc/kubernetes/pki/
 ```
+
 ```
 sudo mv encryption-config.yaml /etc/kubernetes/
 ```
 
+```
+sudo mv kube-apiserver.service /etc/systemd/system/
+```
+
 #### Configure the Kubernetes Controller Manager
 
-Move the `kube-controller-manager` kubeconfig to `/etc/kubernetes`.
+Move the `kube-controller-manager` kubeconfig to `/etc/kubernetes/kubeconfig`.
 
 ```
-sudo mv kube-controller-manager.kubeconfig /etc/kubernetes/
+sudo mv kube-controller-manager.kubeconfig /etc/kubernetes/kubeconfig
+```
+
+```
+sudo mv kube-controller-manager.service /etc/systemd/system/
 ```
 
 #### Configure the Kubernetes Scheduler
 
-Move the `kube-scheduler` kubeconfig to `/etc/kubernetes`.
+Move the `kube-scheduler` kubeconfig to `/etc/kubernetes/kubeconfig`.
 
 ```
-sudo mv kube-scheduler.kubeconfig /etc/kubernetes/
+sudo mv kube-scheduler.kubeconfig /etc/kubernetes/kubeconfig
+```
+
+```
+sudo mv kube-scheduler.yaml /etc/kubernetes/
+```
+
+```
+sudo mv kube-scheduler.service /etc/systemd/system/
 ```
 
 ---
