@@ -39,10 +39,10 @@ cat > kube-apiserver.service <<- EOF
 	  --etcd-servers=https://${etcd_server_ip}:2379 \\
 	  --event-ttl=1h \\
 	  --encryption-provider-config=${config_directory}/encryption-config.yaml \\
+	  --external-hostname=${api_server_ip} \\
 	  --kubelet-certificate-authority=${pki_directory}/ca.pem \\
 	  --kubelet-client-certificate=${pki_directory}/kubernetes.pem \\
 	  --kubelet-client-key=${pki_directory}/kubernetes-key.pem \\
-	  --kubelet-https=true \\
 	  --runtime-config='api/all=true' \\
 	  --service-account-key-file=${pki_directory}/service-account.pem \\
 	  --service-account-signing-key-file=${pki_directory}/service-account-key.pem \\

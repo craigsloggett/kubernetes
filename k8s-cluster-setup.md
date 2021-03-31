@@ -384,12 +384,12 @@ tar -xvf etcd-v3.4.15-linux-arm64.tar
 sudo mv etcd-v3.4.15-linux-arm64/etcd* /usr/local/bin
 ```
 
-All certificates will be kept in `/etc/kubernetes/pki/etcd`.
+All certificates will be kept in `/etc/etcd/tls`.
 
 ```
-sudo mkdir -p /etc/kubernetes/pki/etcd /var/lib/etcd
+sudo mkdir -p /etc/etcd/tls /var/lib/etcd
 sudo chmod 700 /var/lib/etcd
-sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd/
+sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/tls
 ```
 
 ### Generate the `etcd` configuration file.
@@ -497,40 +497,40 @@ cat > etcd-conf.yaml <<- EOF
 	
 	client-transport-security:
 	  # Path to the client server TLS cert file.
-	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
+	  cert-file: '/etc/etcd/tls/kubernetes.pem'
 	
 	  # Path to the client server TLS key file.
-	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
+	  key-file: '/etc/etcd/tls/kubernetes-key.pem'
 	
 	  # Enable client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the client server TLS trusted CA cert file.
-	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
+	  trusted-ca-file: '/etc/etcd/tls/ca.pem'
 	
 	  # Client TLS using generated certificates
 	  auto-tls: false
 	
 	peer-transport-security:
 	  # Path to the peer server TLS cert file.
-	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
+	  cert-file: '/etc/etcd/tls/kubernetes.pem'
 	
 	  # Path to the peer server TLS key file.
-	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
+	  key-file: '/etc/etcd/tls/kubernetes-key.pem'
 	
 	  # Enable peer client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the peer server TLS trusted CA cert file.
-	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
+	  trusted-ca-file: '/etc/etcd/tls/ca.pem'
 	
 	  # Peer TLS using generated certificates.
 	  auto-tls: false
 	
 	# Enable debug-level logging for etcd.
-	log-level: debug
+	log-level: 'info'
 	
-	logger: zap
+	logger: 'zap'
 	
 	# Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd.
 	log-outputs: [stderr]
@@ -544,35 +544,34 @@ EOF
 ```
 
 ```
-sudo chown root:root etcd-conf.yaml
-sudo mkdir /etc/etcd
 sudo mv etcd-conf.yaml /etc/etcd/
+sudo chown -R root:root /etc/etcd/
 ```
 
 ### Generate the `etcd` system unit file.
 
 ```
-cat > etcd.service << EOF
-[Unit]
-Description=etcd
-Documentation=https://github.com/coreos
-
-[Service]
-Environment="ETCD_UNSUPPORTED_ARCH=arm64"
-Type=notify
-ExecStart=/usr/local/bin/etcd \\
-  --config-file /etc/etcd/etcd-conf.yaml
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
+cat > etcd.service <<- EOF
+	[Unit]
+	Description=etcd
+	Documentation=https://github.com/coreos
+	
+	[Service]
+	Environment="ETCD_UNSUPPORTED_ARCH=arm64"
+	Type=notify
+	ExecStart=/usr/local/bin/etcd \\
+	  --config-file /etc/etcd/etcd-conf.yaml
+	Restart=on-failure
+	RestartSec=5
+	
+	[Install]
+	WantedBy=multi-user.target
+	EOF
 ```
 
 ```
-sudo chown root:root etcd.service
 sudo mv etcd.service /etc/systemd/system/
+sudo chown root:root /etc/systemd/system/etcd.service
 ```
 
 ### Enable and start the `etcd` service.
