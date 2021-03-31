@@ -9,6 +9,7 @@ service_ip_range="10.32.0.0/24"
 
 config_directory="/etc/kubernetes"
 pki_directory="/etc/kubernetes/pki"
+etcd_tls_directory="/etc/etcd/tls"
 kubeconfig_directory="/etc/kubernetes/kubeconfig"
 
 # ---
@@ -33,9 +34,9 @@ cat > kube-apiserver.service <<- EOF
 	  --bind-address=0.0.0.0 \\
 	  --client-ca-file=${pki_directory}/ca.pem \\
 	  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
-	  --etcd-cafile=${pki_directory}/ca.pem \\
-	  --etcd-certfile=${pki_directory}/kubernetes.pem \\
-	  --etcd-keyfile=${pki_directory}/kubernetes-key.pem \\
+	  --etcd-cafile=${etcd_tls_directory}/ca.pem \\
+	  --etcd-certfile=${etcd_tls_directory}/kubernetes.pem \\
+	  --etcd-keyfile=${etcd_tls_directory}/kubernetes-key.pem \\
 	  --etcd-servers=https://${etcd_server_ip}:2379 \\
 	  --event-ttl=1h \\
 	  --encryption-provider-config=${config_directory}/encryption-config.yaml \\
