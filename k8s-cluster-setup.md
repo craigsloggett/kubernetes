@@ -32,6 +32,7 @@ My local machine is a MacBook.
  - Debian: `10.8`
  - iptables: `1.8.2 (nf_tables)`
  - Kubernetes: `1.20.5`
+ - cni: `0.9.1`
  - CFSSL: `1.5.0`
  - cri-o: 
  - runc: 
@@ -693,6 +694,36 @@ sudo chown -R root:root /etc/kubernetes
 sudo systemctl daemon-reload
 sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
 sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
+```
+
+---
+
+## Bootstrapping the Kubernetes Worker Nodes
+
+### Install the OS Dependencies
+
+```
+sudo apt update
+sudo apt install socat conntrack ipset
+```
+
+### Download and Install the Kubernetes Worker Nodes Binaries
+
+```
+kubernetes_version="1.20.5"
+kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
+wget \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-proxy" \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubelet" \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubectl"
+```
+
+### Download and Intall the Container Networking Plugins
+
+```
+cni_version="0.9.1"
+cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
+wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
 ```
 
 ---
