@@ -35,6 +35,7 @@ My local machine is a MacBook.
  - cni: `0.9.1`
  - CFSSL: `1.5.0`
  - cri-o: 
+ - conmon: `2.0.27`
  - runc: 
  - etcd: `3.4.15`
 
@@ -724,6 +725,20 @@ wget \
 cni_version="0.9.1"
 cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
 wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
+```
+
+### Download and Intall the Container Runtime Interface
+
+```
+crio_version="1.20.2"
+crio_releases_url=""
+wget 
+```
+
+```
+conmon_version="2.0.27"
+conmon_releases_url="https://github.com/containers/conmon/releases/download"
+wget "${conmon_releases_url}"/v${conmon_version}/conmon.arm64
 ```
 
 ---
