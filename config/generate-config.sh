@@ -25,6 +25,7 @@ cat > kube-apiserver.service <<- EOF
 	ExecStart=/usr/local/bin/kube-apiserver \\
 	  --advertise-address=${api_server_ip} \\
 	  --allow-privileged=true \\
+	  --anonymous-auth=false \\
 	  --apiserver-count=1 \\
 	  --audit-log-maxage=30 \\
 	  --audit-log-maxbackup=3 \\

@@ -13,10 +13,6 @@ Here are the software choices for this configuration:
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
-```
-Make sure --anonymous-auth=false is set on the API server.
-```
-
 `kubenet` has been chosen as the network provider to simplify the configuration required to get a 
 bare metal MVP cluster. Using this guide, I plan on automating this process with POSIX shell scripts
 to keep the dependencies as small as possible.
@@ -719,7 +715,7 @@ wget \
   "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubectl"
 ```
 
-### Download and Intall the Container Networking Plugins
+### Download and Install the Container Networking Plugins
 
 ```
 cni_version="0.9.1"
@@ -727,13 +723,34 @@ cni_releases_url="https://github.com/containernetworking/plugins/releases/downlo
 wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
 ```
 
-### Download and Intall the Container Runtime Interface
+### Download and Install the Container Runtime Interface
+
+#### runc
+
+
+
+#### CRI-O
+
+> CRI-O follows the Kubernetes release cycles with respect to its minor versions (1.x.0).
+> Patch releases (1.x.y) for CRI-O are not in sync with those from Kubernetes, because those are 
+> scheduled for each month, whereas CRI-O provides them only if necessary.
+
+Note: I'm currently using a build artifact directly until the next release since there were
+      previously no arm64 binaries being built.
+
+      See the following PR for details: https://github.com/cri-o/cri-o/pull/4718
 
 ```
 crio_version="1.20.2"
-crio_releases_url=""
-wget 
+crio_releases_url="https://github.com/cri-o/cri-o/suites/2438162514/artifacts/52161659"
+# This needs to be authenticated in order to download, I ended up copying locally.
 ```
+
+```
+tar xvzf cri-o.arm64.f1d5201a64a3adc69e320874f64015246196d4e8.tar.gz
+
+```
+
 
 ```
 conmon_version="2.0.27"
