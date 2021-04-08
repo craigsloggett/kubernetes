@@ -30,8 +30,11 @@ My local machine is a MacBook.
 
 ## Versions
 
- - Debian: `10.8`
+*TODO: Update these values for Debian 11.*
+
+ - Debian: `11 (Testing)`
  - iptables: `1.8.2 (nf_tables)`
+ - nftables: `0.9.8`
  - Kubernetes: `1.20.5`
  - cni: `0.9.1`
  - CFSSL: `1.5.0`
@@ -56,7 +59,7 @@ My local machine is a MacBook.
    a. Flash the image to each SD card:
 
    ```
-   xzcat 20210210_raspi_4_buster.img.xz | sudo dd of=/dev/disk2 bs=64k
+   xzcat 20210210_raspi_4_bullseye.img.xz | sudo dd of=/dev/disk2 bs=64k
    ```
    
    b. Update the configuration settings of the image:
@@ -76,10 +79,10 @@ My local machine is a MacBook.
    d. Repeat for all four Raspberry Pis:
    
    ```
-   k8s-controller-0
-   k8s-node-0
-   k8s-node-1
-   k8s-node-2
+   controller-0
+   node-0
+   node-1
+   node-2
    ```
 ### Preparing the OS
 
