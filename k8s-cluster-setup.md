@@ -5,13 +5,18 @@ physical machines. I have chosen not to use `kubeadm` in order to understand ful
 process of a Kubernetes cluster deployed on-premise.
 
 Here are the software choices for this configuration:
- - Debian 10 Buster
+ - Debian 11 Bullseye
  - Kubernetes
    - CRI-O
    - runc
    - kubenet
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
+
+The "testing" release of Debian has been chosen for it's support of cgroups v2 with a `systemd`
+version 244 or later. Older `systemd` versions do not support delegation of the `cpuset` controller.
+`systemd` version `247.3-3` is marked for release in Debian 11. The use of cgroups v2 is important
+since it supports imposing resource limitations on rootless containers.
 
 `kubenet` has been chosen as the network provider to simplify the configuration required to get a 
 bare metal MVP cluster. Using this guide, I plan on automating this process with POSIX shell scripts
