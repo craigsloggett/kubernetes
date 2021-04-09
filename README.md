@@ -413,7 +413,7 @@ sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/tls
 ```
 controller_hostname="controller-0"
 controller_ip="192.168.1.110"
-etcd_pki_directory="/etc/kubernetes/pki/etcd"
+etcd_pki_directory="/etc/etcd/tls"
 
 cat > etcd-conf.yaml <<- EOF
 	# This is the configuration file for the etcd server.
@@ -620,7 +620,7 @@ https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
 #### Distribute the Configuration Files
 
 ```
-for host in k8s-controller-0; do
+for host in controller-0; do
   scp kube-apiserver.service kube-controller-manager.service \
     kube-scheduler.service kube-scheduler.yaml nerditup@${host}:~
 done
@@ -629,12 +629,13 @@ done
 #### Download and Install the Kubernetes Controller Binaries
 
 ```
+kubernetes_version="1.21.0"
 kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
 wget \
-  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-apiserver" \
-  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-controller-manager" \
-  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kube-scheduler" \
-  "${kubernetes_releases_url}/v1.20.5/bin/linux/arm64/kubectl"
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-apiserver" \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-controller-manager" \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-scheduler" \
+  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubectl"
 ```
 
 ```
@@ -725,7 +726,7 @@ sudo apt install socat conntrack ipset
 ### Download and Install the Kubernetes Worker Nodes Binaries
 
 ```
-kubernetes_version="1.20.5"
+kubernetes_version="1.21.0"
 kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
 wget \
   "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-proxy" \
