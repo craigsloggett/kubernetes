@@ -92,7 +92,6 @@ cat > kube-controller-manager.service <<- EOF
 	WantedBy=multi-user.target
 EOF
 
-
 # ---
 
 # Kubernetes Scheduler
@@ -121,3 +120,4 @@ cat > kube-scheduler.service <<- EOF
 	[Install]
 	WantedBy=multi-user.target
 EOF
+

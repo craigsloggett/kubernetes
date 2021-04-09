@@ -1,5 +1,5 @@
 {
-  "CN": "system:node:k8s-node-0",
+  "CN": "system:node:node-0",
   "key": {
     "algo": "rsa",
     "size": 2048

@@ -33,15 +33,14 @@ My local machine is a MacBook.
 *TODO: Update these values for Debian 11.*
 
  - Debian: `11 (Testing)`
- - iptables: `1.8.2 (nf_tables)`
  - nftables: `0.9.8`
  - Kubernetes: `1.21.0`
- - cni: `0.9.1`
  - CFSSL: `1.5.0`
+ - etcd: `3.4.15`
+ - cni: `0.9.1`
  - cri-o: 
  - conmon: `2.0.27`
  - runc: 
- - etcd: `3.4.15`
 
 ## Network CIDRs
 
@@ -103,8 +102,8 @@ apt upgrade
    cd wireless-regdb
    git checkout <latest-release-tag>  # e.g. master-2020-11-20
    
-   for i in controller-0 node-0 node-1 node-2
-     do scp regulatory.db regulatory.db.p7s root@k8s-$i:/root
+   for host in controller-0 node-0 node-1 node-2
+     do scp regulatory.db regulatory.db.p7s root@$host:/root
    done
    
    # Raspberry Pis
@@ -141,8 +140,15 @@ apt upgrade
    cp ~/.ssh/authorized_keys /home/nerditup/.ssh
    chown nerditup:nerditup /home/nerditup/.ssh/authorized_keys
    ```
+
+   c. Install `sudo`.
+
+   ```
+   # As root.
+   apt install sudo
+   ```
    
-   c. Login as the regular user.
+   d. Login as the regular user.
 
 4. Update `/etc/hosts`.
 
@@ -179,6 +185,7 @@ By default, the Debian image used for the Raspberry Pis doesn't use swap. To con
 cat /proc/swaps
 ```
 
+** TBD **
 7. Enable cgroups.
 
 By default, the Debian image used for the Raspberry Pis has all required cgroups enabled. To 
@@ -188,6 +195,7 @@ confirm,
 cat /proc/cgroups | column -t
 ```
 
+** TBD **
 8. Enable `overlay` and `br_netfilter` kernel modules.
 
 On all machines:
@@ -201,6 +209,7 @@ overlay
 br_netfilter
 ```
 
+** TBD **
 9. Enable ip forwarding.
 
 On all machines:
@@ -224,7 +233,7 @@ net.ipv4.ip_forward = 1
 The following is to be run on a local machine.
 
 ```
-export KUBE_VERSION=1.20.5
+export KUBE_VERSION=1.21.0
 export CFSSL_VERSION=1.5.0
 ```
 
@@ -233,7 +242,7 @@ export CFSSL_VERSION=1.5.0
 ```
 curl -o kubectl "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/darwin/amd64/kubectl"
 chmod +x kubectl
-sudo mv kubectl /usr/local/bin
+sudo mv kubectl ~/.local/bin
 ```
 
 ### cfssl
@@ -242,7 +251,7 @@ sudo mv kubectl /usr/local/bin
 curl -o cfssl -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssl_${CFSSL_VERSION}_darwin_amd64"
 curl -o cfssljson -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssljson_${CFSSL_VERSION}_darwin_amd64"
 chmod +x cfssl cfssljson
-sudo mv cfssl cfssljson /usr/local/bin
+sudo mv cfssl cfssljson ~/.local/bin
 ```
 
 ---
@@ -287,7 +296,7 @@ When generating the kubelet client certificates, the CN must be `system:node:<no
 
 ### Genertaing TLS Certs
 
-All certificates are generating using the script found here: 
+All certificates are generated using the script found here: 
 https://github.com/nerditup/kubernetes/blob/main/certs/generate-ca.sh
 
 #### Verify
@@ -301,7 +310,7 @@ openssl x509 -in <certificate_name.pem> -text -noout
 Distribute the appropriate certificates and private keys to each node host:
 
 ```
-for host in k8s-node-0 k8s-node-1 k8s-node-2; do
+for host in node-0 node-1 node-2; do
   scp ca.pem "${host}"-key.pem "${host}".pem nerditup@${host}:~
 done
 ```
@@ -309,7 +318,7 @@ done
 Distribute the appropriate certificates and private keys to each controller host:
 
 ```
-for host in k8s-controller-0; do
+for host in controller-0; do
   scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
     service-account-key.pem service-account.pem nerditup@${host}:~
 done
@@ -321,9 +330,9 @@ done
 
 The following is to be run on a local machine.
 
-### Genertaing TLS Certs
+### Genertaing Kubernetes Configuration Files
 
-All certificates are generating using the script found here: 
+All kubeconfig files are generated using the script found here: 
 https://github.com/nerditup/kubernetes/blob/main/certs/generate-kubeconfig.sh
 
 ### Distribute the Kubernetes Configuration Files
@@ -331,15 +340,16 @@ https://github.com/nerditup/kubernetes/blob/main/certs/generate-kubeconfig.sh
 Distribute the `kubelet` and `kube-proxy` kubeconfig files to each node host:
 
 ```
-for host in k8s-node-0 k8s-node-1 k8s-node-2; do
+for host in node-0 node-1 node-2; do
   scp ${host}.kubeconfig kube-proxy.kubeconfig nerditup@${host}:~
 done
 ```
 
-Distribute the `kube-controller-manager` and `kube-scheduler` kubeconfig files to each controller host:
+Distribute the `admin`, `kube-controller-manager` and `kube-scheduler` kubeconfig files to each 
+controller host:
 
 ```
-for host in k8s-controller-0; do
+for host in controller-0; do
   scp admin.kubeconfig kube-controller-manager.kubeconfig kube-scheduler.kubeconfig nerditup@${host}:~
 done
 ```
@@ -373,7 +383,7 @@ EOF
 Distribute the `encryption-config` file to each controller host:
 
 ```
-for host in k8s-controller-0; do
+for host in controller-0; do
   scp encryption-config.yaml nerditup@${host}:~
 done
 ```
@@ -401,7 +411,7 @@ sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/tls
 ### Generate the `etcd` configuration file.
 
 ```
-controller_hostname="k8s-controller-0"
+controller_hostname="controller-0"
 controller_ip="192.168.1.110"
 etcd_pki_directory="/etc/kubernetes/pki/etcd"
 
@@ -431,10 +441,10 @@ cat > etcd-conf.yaml <<- EOF
 	quota-backend-bytes: 0
 	
 	# List of comma separated URLs to listen on for peer traffic.
-	listen-peer-urls: 'https://192.168.1.110:2380'
+	listen-peer-urls: 'https://${controller_ip}:2380'
 	
 	# List of comma separated URLs to listen on for client traffic.
-	listen-client-urls: 'https://192.168.1.110:2379,https://127.0.0.1:2379'
+	listen-client-urls: 'https://${controller_ip}:2379,https://127.0.0.1:2379'
 	
 	# Maximum number of snapshot files to retain (0 is unlimited).
 	max-snapshots: 5
@@ -447,11 +457,11 @@ cat > etcd-conf.yaml <<- EOF
 	
 	# List of this member's peer URLs to advertise to the rest of the cluster.
 	# The URLs needed to be a comma-separated list.
-	initial-advertise-peer-urls: 'https://192.168.1.110:2380'
+	initial-advertise-peer-urls: 'https://${controller_ip}:2380'
 	
 	# List of this member's client URLs to advertise to the public.
 	# The URLs needed to be a comma-separated list.
-	advertise-client-urls: 'https://192.168.1.110:2379'
+	advertise-client-urls: 'https://${controller_ip}:2379'
 	
 	# Discovery URL used to bootstrap the cluster.
 	discovery:
@@ -466,7 +476,7 @@ cat > etcd-conf.yaml <<- EOF
 	discovery-srv:
 	
 	# Initial cluster configuration for bootstrapping.
-	initial-cluster: '${controller_hostname}=https://192.168.1.110:2380'
+	initial-cluster: '${controller_hostname}=https://${controller_ip}:2380'
 	
 	# Initial cluster token for the etcd cluster during bootstrap.
 	initial-cluster-token: 'etcd-cluster'
