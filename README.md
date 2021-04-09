@@ -35,7 +35,7 @@ My local machine is a MacBook.
  - Debian: `11 (Testing)`
  - iptables: `1.8.2 (nf_tables)`
  - nftables: `0.9.8`
- - Kubernetes: `1.20.5`
+ - Kubernetes: `1.21.0`
  - cni: `0.9.1`
  - CFSSL: `1.5.0`
  - cri-o: 
