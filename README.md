@@ -5,7 +5,7 @@ physical machines. I have chosen not to use `kubeadm` in order to understand ful
 process of a Kubernetes cluster deployed on-premise.
 
 Here are the software choices for this configuration:
- - Debian 11 Bullseye
+ - Debian 11 (Bullseye)
  - Kubernetes
    - CRI-O
    - runc
@@ -37,8 +37,8 @@ My local machine is a MacBook.
  - etcd: `3.4.15`
  - cni: `0.9.1`
  - runc: `1.0.0-rc93`
- - cri-o: 
- - conmon: `2.0.27`
+ - cri-o: `1.21.0-dev`
+ - conmon: `2.0.26`
 
 ## Network CIDRs
 
@@ -183,7 +183,6 @@ By default, the Debian image used for the Raspberry Pis doesn't use swap. To con
 cat /proc/swaps
 ```
 
-** TBD **
 7. Enable cgroups.
 
 By default, the Debian image used for the Raspberry Pis has all required cgroups enabled. To 
@@ -193,7 +192,6 @@ confirm,
 cat /proc/cgroups | column -t
 ```
 
-** TBD **
 8. Enable `overlay` and `br_netfilter` kernel modules.
 
 On all machines:
@@ -207,7 +205,6 @@ overlay
 br_netfilter
 ```
 
-** TBD **
 9. Enable ip forwarding.
 
 On all machines:
@@ -795,7 +792,8 @@ sudo mv ca.pem node-*.pem /etc/kubernetes/pki/
 Copy the Kubernetes configuration to `/etc/kubernetes/kubeconfig`.
 
 ```
-sudo mv *.kubeconfig /etc/kubernetes/kubeconfig/
+sudo mv kube-proxy.kubeconfig /etc/kubernetes/kubeconfig/
+sudo mv node-*.kubeconfig /etc/kubernetes/kubeconfig/kubelet.kubeconfig
 ```
 
 #### Update Ownership on Configuration Files
@@ -827,6 +825,8 @@ crio_releases_url="https://github.com/cri-o/cri-o/actions/runs/733139722"
 tar xvzf cri-o.arm64.da81fd7d70110be3636a6913fce5de0c9a9731e6.tar.gz
 cri-o/./install
 ```
+
+`crio` is configured to use `runc` by default.
 
 #### runc
 

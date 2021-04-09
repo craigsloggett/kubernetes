@@ -121,3 +121,53 @@ cat > kube-scheduler.service <<- EOF
 	WantedBy=multi-user.target
 EOF
 
+# ---
+
+# Kubernetes Kubelet
+
+cat > kubelet.service <<- EOF
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kubelet \\
+  --config=/etc/kubernetes/kubelet-config.yaml \\
+  --cgroup-driver=systemd \\
+  --container-runtime=remote \\
+  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \\
+  --kubeconfig=/etc/kubernetes/kubeconfig/kubelet.kubeconfig \\
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+	[Unit]
+	Description=Kubernetes Kubelet
+	Documentation=https://github.com/kubernetes/kubernetes
+	
+	[Service]
+	ExecStart=/usr/bin/kubelet \\
+	  --allow-privileged=true \\
+	  --api-servers=https://10.0.1.94:6443,https://10.0.1.95:6443,https://10.0.1.96:6443 \\
+	  --cloud-provider= \\
+	  --cluster-dns=10.32.0.10 \\
+	  --cluster-domain=cluster.local \\
+	  --configure-cbr0=true \\
+	  --container-runtime=docker \\
+	  --docker=unix:///var/run/docker.sock \\
+	  --network-plugin=kubenet \\
+	  --kubeconfig=/var/lib/kubelet/kubeconfig \\
+	  --reconcile-cidr=true \\
+	  --serialize-image-pulls=false \\
+	  --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
+	  --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
+	  --v=2
+	  
+	Restart=on-failure
+	RestartSec=5
+	
+	[Install]
+	WantedBy=multi-user.target
+EOF
