@@ -1,0 +1,16 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+
+[Service]
+ExecStart=/usr/local/bin/kubelet \
+  --config=/etc/kubernetes/kubelet-config.yaml \
+  --container-runtime=remote \
+  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \
+  --kubeconfig=/etc/kubernetes/kubeconfig/kubelet.kubeconfig \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
