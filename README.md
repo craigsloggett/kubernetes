@@ -754,6 +754,21 @@ EOF
 
 ## Bootstrapping the Kubernetes Worker Nodes
 
+All service and kubeconfig files are generated using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
+
+### Distribute the Configuration Files
+
+```
+for host in node-0 node-1 node-2; do
+  scp "${host}-kubelet-config.yaml nerditup@${host}:~
+done
+```
+
+```
+scp kubelet.service nerditup@${host}:~
+```
+
 ### Install the OS Dependencies
 
 ```
