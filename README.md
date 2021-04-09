@@ -761,7 +761,7 @@ https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
 
 ```
 for host in node-0 node-1 node-2; do
-  scp "${host}-kubelet-config.yaml nerditup@${host}:~
+  scp ${host}-kubelet-config.yaml nerditup@${host}:~
 done
 ```
 
