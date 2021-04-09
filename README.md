@@ -761,12 +761,21 @@ https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
 
 ```
 for host in node-0 node-1 node-2; do
-  scp ${host}-kubelet-config.yaml nerditup@${host}:~
+  scp ${host}-kubelet-config.yaml kubelet.service nerditup@${host}:~
 done
 ```
 
+#### Put the configuration files in place.
+
 ```
-scp kubelet.service nerditup@${host}:~
+# Change the kubelet-config.yaml filename to drop the leading hostname.
+sudo mv kubelet-config.yaml /etc/kubernetes/kubelet-config.yaml
+sudo mv kubelet.service /etc/systemd/system/
+```
+
+```
+sudo chown root:root /etc/kubernetes/kubelet-config.yaml
+sudo chown root:root /etc/systemd/system/kubelet.service
 ```
 
 ### Install the OS Dependencies
