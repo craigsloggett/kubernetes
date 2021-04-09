@@ -30,17 +30,15 @@ My local machine is a MacBook.
 
 ## Versions
 
-*TODO: Update these values for Debian 11.*
-
  - Debian: `11 (Testing)`
  - iptables: `1.8.7 (nf_tables)`
  - Kubernetes: `1.21.0`
  - CFSSL: `1.5.0`
  - etcd: `3.4.15`
  - cni: `0.9.1`
+ - runc: `1.0.0-rc93`
  - cri-o: 
  - conmon: `2.0.27`
- - runc: 
 
 ## Network CIDRs
 
@@ -708,6 +706,53 @@ sudo systemctl enable kube-apiserver kube-controller-manager kube-scheduler
 sudo systemctl start kube-apiserver kube-controller-manager kube-scheduler
 ```
 
+### Setup RBAC for Kubelet Authorization
+
+This only needs to be run once on a single controller node (in this case there is 
+only `controller-0`).
+
+```
+cat <<- EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+	apiVersion: rbac.authorization.k8s.io/v1
+	kind: ClusterRole
+	metadata:
+	  annotations:
+	    rbac.authorization.kubernetes.io/autoupdate: "true"
+	  labels:
+	    kubernetes.io/bootstrapping: rbac-defaults
+	  name: system:kube-apiserver-to-kubelet
+	rules:
+	  - apiGroups:
+	      - ""
+	    resources:
+	      - nodes/proxy
+	      - nodes/stats
+	      - nodes/log
+	      - nodes/spec
+	      - nodes/metrics
+	    verbs:
+	      - "*"
+EOF
+```
+
+```
+cat <<- EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+	apiVersion: rbac.authorization.k8s.io/v1
+	kind: ClusterRoleBinding
+	metadata:
+	  name: system:kube-apiserver
+	  namespace: ""
+	roleRef:
+	  apiGroup: rbac.authorization.k8s.io
+	  kind: ClusterRole
+	  name: system:kube-apiserver-to-kubelet
+	subjects:
+	  - apiGroup: rbac.authorization.k8s.io
+	    kind: User
+	    name: kubernetes
+EOF
+```
+
 ---
 
 ## Bootstrapping the Kubernetes Worker Nodes
@@ -741,8 +786,6 @@ sudo mkdir -p /etc/kubernetes/pki
 sudo mkdir -p /var/run/kubernetes
 ```
 
-#### Configure the Kubernetes API Server
-
 Copy the TLS certificates configuration to `/etc/kubernetes/pki`.
 
 ```
@@ -761,26 +804,7 @@ sudo mv *.kubeconfig /etc/kubernetes/kubeconfig/
 sudo chown -R root:root /etc/kubernetes/
 ```
 
-### Download and Install the Container Networking Plugins
-
-```
-cni_version="0.9.1"
-cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
-wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
-```
-
-### Create the Installation Directories
-
-```
-sudo mkdir -p /etc/cni/net.d
-sudo mkdir -p /opt/cni/bin
-```
-
-### Download and Install the Container Runtime Interface
-
-#### runc
-
-
+### Download and Install the Container Runtime
 
 #### CRI-O
 
@@ -794,21 +818,51 @@ Note: I'm currently using a build artifact directly until the next release since
       See the following PR for details: https://github.com/cri-o/cri-o/pull/4718
 
 ```
-crio_version="1.20.2"
-crio_releases_url="https://github.com/cri-o/cri-o/suites/2438162514/artifacts/52161659"
+crio_version="1.21.0-dev"
+crio_releases_url="https://github.com/cri-o/cri-o/actions/runs/733139722"
 # This needs to be authenticated in order to download, I ended up copying locally.
 ```
 
 ```
-tar xvzf cri-o.arm64.f1d5201a64a3adc69e320874f64015246196d4e8.tar.gz
-
+tar xvzf cri-o.arm64.da81fd7d70110be3636a6913fce5de0c9a9731e6.tar.gz
+cri-o/./install
 ```
 
+#### runc
+
+Since the `runc` repository doesn't offer `arm64` binary releases, I have captured the
+binary from Docker's `containerd.io` project and placed it in this repository under `/bin`.
+
+From the local machine, copy this binary to each node.
 
 ```
-conmon_version="2.0.27"
-conmon_releases_url="https://github.com/containers/conmon/releases/download"
-wget "${conmon_releases_url}"/v${conmon_version}/conmon.arm64
+for host in node-0 node-1 node-2; do
+  scp bin/runc-arm64 nerditup@${host}:~
+done
+```
+
+On each node machine, place the `runc` binary in the system path.
+
+```
+sudo mv runc-arm64 /usr/local/bin/runc
+sudo chown root:root /usr/local/bin/runc
+```
+
+### Download and Install the Container Networking Plugins
+
+```
+cni_version="0.9.1"
+cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
+wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
+```
+
+```
+sudo mkdir -p /etc/cni/net.d
+sudo mkdir -p /opt/cni/bin
+```
+
+```
+sudo tar -xvf cni-plugins-linux-arm64-v0.9.1.tgz -C /opt/cni/bin/
 ```
 
 ---
@@ -841,192 +895,8 @@ Define the cluster role that the Calico CNI plugin will use, then bind it to the
 
 ### Reference here for k8s config file apiVersions: https://github.com/kubernetes/kubernetes/tree/master/staging/src/k8s.io
 
-
-
-mkdir -p /etc/kubernetes/config
-
-
-wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/arm64/kube-apiserver" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/arm64/kube-controller-manager" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/arm64/kube-scheduler" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.20.4/bin/linux/arm64/kubectl"
-
-
-{
-  chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-  mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
-}
-
-
-{
-  mkdir -p /var/lib/kubernetes/
-
-  mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-    service-account-key.pem service-account.pem \
-    encryption-config.yaml /var/lib/kubernetes/
-}
-
-
-
-
-
-cat <<EOF | tee /etc/systemd/system/kube-apiserver.service
-[Unit]
-Description=Kubernetes API Server
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-apiserver \\
-  --advertise-address=192.168.1.200 \\
-  --allow-privileged=true \\
-  --apiserver-count=1 \\
-  --audit-log-maxage=30 \\
-  --audit-log-maxbackup=3 \\
-  --audit-log-maxsize=100 \\
-  --audit-log-path=/var/log/audit.log \\
-  --authorization-mode=Node,RBAC \\
-  --bind-address=0.0.0.0 \\
-  --client-ca-file=/var/lib/kubernetes/ca.pem \\
-  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
-  --etcd-cafile=/var/lib/kubernetes/ca.pem \\
-  --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
-  --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://192.168.1.200:2379\\
-  --event-ttl=1h \\
-  --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
-  --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
-  --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \\
-  --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \\
-  --runtime-config='api/all=true' \\
-  --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
-  --service-account-signing-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-account-issuer=api \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
-  --service-node-port-range=30000-32767 \\
-  --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
-  --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
-
-
-mv kube-controller-manager.kubeconfig /var/lib/kubernetes/
-
-
-
-
-
-
-cat <<EOF | tee /etc/systemd/system/kube-controller-manager.service
-[Unit]
-Description=Kubernetes Controller Manager
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-controller-manager \\
-  --allocate-node-cidrs=true \\
-  --bind-address=0.0.0.0 \\
-  --cluster-cidr=10.16.0.0/16 \\
-  --cluster-name=kubernetes \\
-  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
-  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
-  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
-  --leader-elect=true \\
-  --root-ca-file=/var/lib/kubernetes/ca.pem \\
-  --node-cidr-mask-size=24 \\
-  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
-  --use-service-account-credentials=true \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
-mv kube-scheduler.kubeconfig /var/lib/kubernetes/
-
-
-
-cat <<EOF | tee /etc/kubernetes/config/kube-scheduler.yaml
-apiVersion: kubescheduler.config.k8s.io/v1alpha1
-kind: KubeSchedulerConfiguration
-clientConnection:
-  kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
-leaderElection:
-  leaderElect: true
-EOF
-
-
-cat <<EOF | tee /etc/systemd/system/kube-scheduler.service
-[Unit]
-Description=Kubernetes Scheduler
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-scheduler \\
-  --config=/etc/kubernetes/config/kube-scheduler.yaml \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-
-
-
 # just run on one of the controller nodes (k8s-master-1)
 
-cat <<EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  annotations:
-    rbac.authorization.kubernetes.io/autoupdate: "true"
-  labels:
-    kubernetes.io/bootstrapping: rbac-defaults
-  name: system:kube-apiserver-to-kubelet
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - nodes/proxy
-      - nodes/stats
-      - nodes/log
-      - nodes/spec
-      - nodes/metrics
-    verbs:
-      - "*"
-EOF
-
-
-
-cat <<EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: system:kube-apiserver
-  namespace: ""
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:kube-apiserver-to-kubelet
-subjects:
-  - apiGroup: rbac.authorization.k8s.io
-    kind: User
-    name: kubernetes
-EOF
 
 
 
