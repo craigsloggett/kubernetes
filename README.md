@@ -33,7 +33,7 @@ My local machine is a MacBook.
 *TODO: Update these values for Debian 11.*
 
  - Debian: `11 (Testing)`
- - nftables: `0.9.8`
+ - iptables: `1.8.7 (nf_tables)`
  - Kubernetes: `1.21.0`
  - CFSSL: `1.5.0`
  - etcd: `3.4.15`
@@ -644,6 +644,7 @@ done
 
 ```
 sudo mkdir -p /etc/kubernetes/kubeconfig
+sudo mkdir -p /etc/kubernetes/pki
 ```
 
 #### Configure the Kubernetes API Server
@@ -662,7 +663,6 @@ sudo mv encryption-config.yaml /etc/kubernetes/
 
 ```
 sudo mv kube-apiserver.service /etc/systemd/system/
-sudo chown root:root /etc/systemd/system/kube-apiserver.service
 ```
 
 #### Configure the Kubernetes Controller Manager
@@ -675,7 +675,6 @@ sudo mv kube-controller-manager.kubeconfig /etc/kubernetes/kubeconfig
 
 ```
 sudo mv kube-controller-manager.service /etc/systemd/system/
-sudo chown root:root /etc/systemd/system/kube-controller-manager.service
 ```
 
 #### Configure the Kubernetes Scheduler
@@ -692,13 +691,13 @@ sudo mv kube-scheduler.yaml /etc/kubernetes/
 
 ```
 sudo mv kube-scheduler.service /etc/systemd/system/
-sudo chown root:root /etc/systemd/system/kube-scheduler.service
 ```
 
 #### Update Ownership on Configuration Files
 
 ```
 sudo chown -R root:root /etc/kubernetes
+sudo chown -R root:root /etc/systemd/system
 ```
 
 #### Start the Services
@@ -725,10 +724,41 @@ sudo apt install socat conntrack ipset
 ```
 kubernetes_version="1.21.0"
 kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
-wget \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-proxy" \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubelet" \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubectl"
+
+for bin in kube-proxy kubelet kubectl; do
+  wget "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/${bin}"
+  chmod +x "${bin}"
+  sudo mv "${bin}" /usr/local/bin/
+  sudo chown root:root /usr/local/bin/"${bin}"
+done
+```
+
+#### Prepare the Configuration Directory
+
+```
+sudo mkdir -p /etc/kubernetes/kubeconfig
+sudo mkdir -p /etc/kubernetes/pki
+sudo mkdir -p /var/run/kubernetes
+```
+
+#### Configure the Kubernetes API Server
+
+Copy the TLS certificates configuration to `/etc/kubernetes/pki`.
+
+```
+sudo mv ca.pem node-*.pem /etc/kubernetes/pki/
+```
+
+Copy the Kubernetes configuration to `/etc/kubernetes/kubeconfig`.
+
+```
+sudo mv *.kubeconfig /etc/kubernetes/kubeconfig/
+```
+
+#### Update Ownership on Configuration Files
+
+```
+sudo chown -R root:root /etc/kubernetes/
 ```
 
 ### Download and Install the Container Networking Plugins
@@ -737,6 +767,13 @@ wget \
 cni_version="0.9.1"
 cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
 wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
+```
+
+### Create the Installation Directories
+
+```
+sudo mkdir -p /etc/cni/net.d
+sudo mkdir -p /opt/cni/bin
 ```
 
 ### Download and Install the Container Runtime Interface
