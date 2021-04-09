@@ -582,7 +582,7 @@ cat > etcd.service <<- EOF
 	
 	[Install]
 	WantedBy=multi-user.target
-	EOF
+EOF
 ```
 
 ```
