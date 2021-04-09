@@ -631,16 +631,13 @@ done
 ```
 kubernetes_version="1.21.0"
 kubernetes_releases_url="https://storage.googleapis.com/kubernetes-release/release"
-wget \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-apiserver" \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-controller-manager" \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kube-scheduler" \
-  "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/kubectl"
-```
 
-```
-chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
+for bin in kube-apiserver kube-controller-manager kube-scheduler kubectl; do
+  wget "${kubernetes_releases_url}/v${kubernetes_version}/bin/linux/arm64/${bin}"
+  chmod +x "${bin}"
+  sudo mv "${bin}" /usr/local/bin/
+  sudo chown root:root /usr/local/bin/"${bin}"
+done
 ```
 
 #### Prepare the Configuration Directory
