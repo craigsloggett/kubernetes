@@ -13,6 +13,7 @@ etcd_tls_directory="/etc/etcd/tls"
 kubeconfig_directory="/etc/kubernetes/kubeconfig"
 
 node_hostnames=("node-0" "node-1" "node-2")
+cluster_name="kubernetes-pi"
 
 # ---
 
@@ -76,7 +77,7 @@ cat > kube-controller-manager.service <<- EOF
 	ExecStart=/usr/local/bin/kube-controller-manager \\
 	  --bind-address=0.0.0.0 \\
 	  --cluster-cidr=${pod_cidr} \\
-	  --cluster-name=kubernetes \\
+	  --cluster-name=${cluster_name} \\
 	  --cluster-signing-cert-file=${pki_directory}/ca.pem \\
 	  --cluster-signing-key-file=${pki_directory}/ca-key.pem \\
 	  --kubeconfig=${kubeconfig_directory}/kube-controller-manager.kubeconfig \\

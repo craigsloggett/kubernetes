@@ -1,7 +1,7 @@
 # This is the configuration file for the etcd server.
 
 # Human-readable name for this member.
-name: 'k8s-controller-0'
+name: 'controller-0'
 
 # Path to the data directory.
 data-dir: '/var/lib/etcd'
@@ -58,7 +58,7 @@ discovery-proxy:
 discovery-srv:
 
 # Initial cluster configuration for bootstrapping.
-initial-cluster: 'k8s-controller-0=https://192.168.1.110:2380'
+initial-cluster: 'controller-0=https://192.168.1.110:2380'
 
 # Initial cluster token for the etcd cluster during bootstrap.
 initial-cluster-token: 'etcd-cluster'
