@@ -1178,20 +1178,20 @@ systemctl start containerd kubelet kube-proxy
 # Check /var/log/syslog for errors
 
 {
-  kubectl config set-cluster k8s-pi-cluster \
+  kubectl config set-cluster kubernetes-pi \
     --certificate-authority=ca.pem \
     --embed-certs=true \
-    --server=https://192.168.1.200:6443
+    --server=https://192.168.1.110:6443
 
   kubectl config set-credentials admin \
     --client-certificate=admin.pem \
     --client-key=admin-key.pem
 
-  kubectl config set-context k8s-pi-cluster \
-    --cluster=k8s-pi-cluster \
+  kubectl config set-context kubernetes-pi \
+    --cluster=kubernetes-pi \
     --user=admin
 
-  kubectl config use-context k8s-pi-cluster
+  kubectl config use-context kubernetes-pi
 }
 
 
