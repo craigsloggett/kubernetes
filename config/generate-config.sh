@@ -127,25 +127,6 @@ EOF
 
 # Kubernetes Kubelet
 
-cat > kubelet.service <<- EOF
-	[Unit]
-	Description=Kubernetes Kubelet
-	Documentation=https://github.com/kubernetes/kubernetes
-	
-	[Service]
-	ExecStart=/usr/local/bin/kubelet \\
-	  --config=/etc/kubernetes/kubelet-config.yaml \\
-	  --container-runtime=remote \\
-	  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \\
-	  --kubeconfig=/etc/kubernetes/kubeconfig/kubelet.kubeconfig \\
-	  --v=2
-	Restart=on-failure
-	RestartSec=5
-	
-	[Install]
-	WantedBy=multi-user.target
-EOF
-
 for node_hostname in "${node_hostnames[@]}"; do
 	cat > ${node_hostname}-kubelet-config.yaml <<- EOF
 		kind: KubeletConfiguration
@@ -171,3 +152,47 @@ for node_hostname in "${node_hostnames[@]}"; do
 	EOF
 done
 
+cat > kubelet.service <<- EOF
+	[Unit]
+	Description=Kubernetes Kubelet
+	Documentation=https://github.com/kubernetes/kubernetes
+	
+	[Service]
+	ExecStart=/usr/local/bin/kubelet \\
+	  --config=${config_directory}/kubelet-config.yaml \\
+	  --container-runtime=remote \\
+	  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \\
+	  --kubeconfig=${kubeconfig_directory}/kubelet.kubeconfig \\
+	  --v=2
+	Restart=on-failure
+	RestartSec=5
+	
+	[Install]
+	WantedBy=multi-user.target
+EOF
+
+# Kubernetes Proxy
+
+cat > kube-proxy-config.yaml <<- EOF
+	kind: KubeProxyConfiguration
+	apiVersion: kubeproxy.config.k8s.io/v1alpha1
+	clientConnection:
+	  kubeconfig: "${kubeconfig_directory}/kube-proxy.kubeconfig"
+	mode: "ipvs"
+	clusterCIDR: "${pod_cidr}"
+EOF
+
+cat > kube-proxy.service <<- EOF
+	[Unit]
+	Description=Kubernetes Kube Proxy
+	Documentation=https://github.com/kubernetes/kubernetes
+	
+	[Service]
+	ExecStart=/usr/local/bin/kube-proxy \\
+	  --config=${config_directory}/kube-proxy-config.yaml
+	Restart=on-failure
+	RestartSec=5
+	
+	[Install]
+	WantedBy=multi-user.target
+EOF
