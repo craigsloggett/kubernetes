@@ -219,7 +219,16 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
 ```
 
-10. Reboot all machines.
+10. Setup locales.
+
+On all machines:
+
+```
+apt install locales
+dpkg-reconfigure locales
+```
+
+11. Reboot all machines.
 
 ---
 
@@ -786,7 +795,7 @@ sudo chown root:root /etc/systemd/system/kube-proxy.service
 
 ```
 sudo apt update
-sudo apt install socat conntrack ipset
+sudo apt install ipvsadm
 ```
 
 ### Download and Install the Kubernetes Worker Nodes Binaries
@@ -832,6 +841,43 @@ sudo chown -R root:root /etc/kubernetes/
 
 ### Download and Install the Container Runtime
 
+#### runc
+
+Since the `runc` repository doesn't offer `arm64` binary releases, I have captured the
+binary from Docker's `containerd.io` project and placed it in this repository under `/bin`.
+
+From the local machine, copy this binary to each node.
+
+```
+for host in node-0 node-1 node-2; do
+  scp bin/runc-arm64 nerditup@${host}:~
+done
+```
+
+On each node machine, place the `runc` binary in the system path.
+
+```
+sudo mv runc-arm64 /usr/local/bin/runc
+sudo chown root:root /usr/local/bin/runc
+```
+
+### Container Networking Plugins
+
+```
+cni_version="0.9.1"
+cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
+wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
+```
+
+```
+sudo mkdir -p /etc/cni/net.d
+sudo mkdir -p /opt/cni/bin
+```
+
+```
+sudo tar -xvf cni-plugins-linux-arm64-v0.9.1.tgz -C /opt/cni/bin/
+```
+
 #### CRI-O
 
 > CRI-O follows the Kubernetes release cycles with respect to its minor versions (1.x.0).
@@ -856,41 +902,10 @@ cri-o/./install
 
 `crio` is configured to use `runc` by default.
 
-#### runc
-
-Since the `runc` repository doesn't offer `arm64` binary releases, I have captured the
-binary from Docker's `containerd.io` project and placed it in this repository under `/bin`.
-
-From the local machine, copy this binary to each node.
-
 ```
-for host in node-0 node-1 node-2; do
-  scp bin/runc-arm64 nerditup@${host}:~
-done
-```
-
-On each node machine, place the `runc` binary in the system path.
-
-```
-sudo mv runc-arm64 /usr/local/bin/runc
-sudo chown root:root /usr/local/bin/runc
-```
-
-### Download and Install the Container Networking Plugins
-
-```
-cni_version="0.9.1"
-cni_releases_url="https://github.com/containernetworking/plugins/releases/download"
-wget "${cni_releases_url}"/v${cni_version}/cni-plugins-linux-arm64-v${cni_version}.tgz
-```
-
-```
-sudo mkdir -p /etc/cni/net.d
-sudo mkdir -p /opt/cni/bin
-```
-
-```
-sudo tar -xvf cni-plugins-linux-arm64-v0.9.1.tgz -C /opt/cni/bin/
+sudo systemctl daemon-reload
+sudo systemctl enable crio
+sudo systemctl start crio
 ```
 
 ---
@@ -931,7 +946,7 @@ Define the cluster role that the Calico CNI plugin will use, then bind it to the
 
 # on all the workers at the same time (k8s-node-1 k8s-node-2 k8s-node-3)
 
-apt install socat conntrack ipset
+apt install socat ipset
 
 swapoff -a
 
