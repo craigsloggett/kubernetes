@@ -761,7 +761,8 @@ https://github.com/nerditup/kubernetes/blob/main/config/generate-config.sh
 
 ```
 for host in node-0 node-1 node-2; do
-  scp ${host}-kubelet-config.yaml kubelet.service nerditup@${host}:~
+  scp ${host}-kubelet-config.yaml kubelet.service \
+    kube-proxy-config.yaml kube-proxy.service nerditup@${host}:~
 done
 ```
 
@@ -769,13 +770,16 @@ done
 
 ```
 # Change the kubelet-config.yaml filename to drop the leading hostname.
-sudo mv kubelet-config.yaml /etc/kubernetes/kubelet-config.yaml
-sudo mv kubelet.service /etc/systemd/system/
+sudo mv xxx-kubelet-config.yaml /etc/kubernetes/kubelet-config.yaml
+sudo mv kube-proxy-config.yaml /etc/kubernetes/
+sudo mv kubelet.service kube-proxy.service /etc/systemd/system/
 ```
 
 ```
 sudo chown root:root /etc/kubernetes/kubelet-config.yaml
+sudo chown root:root /etc/kubernetes/kube-proxy-config.yaml
 sudo chown root:root /etc/systemd/system/kubelet.service
+sudo chown root:root /etc/systemd/system/kube-proxy.service
 ```
 
 ### Install the OS Dependencies
