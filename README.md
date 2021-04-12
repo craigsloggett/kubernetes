@@ -10,6 +10,7 @@ Here are the software choices for this configuration:
    - CRI-O
    - runc
    - kubenet
+   - ipvs
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
@@ -18,11 +19,7 @@ version 244 or later. Older `systemd` versions do not support delegation of the 
 `systemd` version `247.3-3` is marked for release in Debian 11. The use of cgroups v2 is important
 since it supports imposing resource limitations on rootless containers.
 
-`kubenet` has been chosen as the network provider to simplify the configuration required to get a 
-bare metal MVP cluster. Using this guide, I plan on automating this process with POSIX shell scripts
-to keep the dependencies as small as possible.
-
-In the future, I would like to swap `kubenet` for `flannel` and then ultimately `calico` with eBGP 
+In the future, I would like to swap `flannel` for `calico` with eBGP 
 and network policies configured with the goal of provisioning a "production ready" cluster following
 the latest best practices.
 
@@ -219,7 +216,14 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.ipv4.ip_forward = 1
 ```
 
-10. Setup locales.
+10. Enable `systemd-resolved.service`.
+
+```
+systemctl enable systemd-resolved.service
+systemctl start systemd-resolved.service
+```
+
+11. Setup locales.
 
 On all machines:
 
@@ -228,7 +232,7 @@ apt install locales
 dpkg-reconfigure locales
 ```
 
-11. Reboot all machines.
+12. Reboot all machines.
 
 ---
 
