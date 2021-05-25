@@ -15,6 +15,7 @@ kubeconfig_directory="/etc/kubernetes/kubeconfig"
 node_hostnames=("node-0" "node-1" "node-2")
 cluster_name="kubernetes-pi"
 
+pod_infra_container_image="gcr.io/google-containers/pause-arm64:3.2"
 # ---
 
 # Kubernetes API Server
@@ -75,6 +76,7 @@ cat > kube-controller-manager.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-controller-manager \\
+	  --allocate-node-cidrs=true \\
 	  --bind-address=0.0.0.0 \\
 	  --cluster-cidr=${pod_cidr} \\
 	  --cluster-name=${cluster_name} \\
@@ -145,7 +147,6 @@ for node_hostname in "${node_hostnames[@]}"; do
 		clusterDomain: "cluster.local"
 		clusterDNS:
 		  - "10.32.0.10"
-		podCIDR: "${pod_cidr}"
 		resolvConf: "/run/systemd/resolve/resolv.conf"
 		runtimeRequestTimeout: "15m"
 		tlsCertFile: "${pki_directory}/${node_hostname}.pem"
@@ -164,6 +165,7 @@ cat > kubelet.service <<- EOF
 	  --container-runtime=remote \\
 	  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \\
 	  --kubeconfig=${kubeconfig_directory}/kubelet.kubeconfig \\
+	  --pod-infra-container-image='${pod_infra_container_image}' \\
 	  --v=2
 	Restart=on-failure
 	RestartSec=5

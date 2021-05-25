@@ -43,6 +43,10 @@ My local machine is a MacBook.
  - Cluster CIDR: `10.200.0.0/16`
  - Service Cluster CIDR: `10.32.0.0/16`
 
+TODO:
+```
+cAdvisor is build without cgo and/or libpfm support. Perf event counters are not available.
+```
 --- 
 
 ## Preparing the Hardware
