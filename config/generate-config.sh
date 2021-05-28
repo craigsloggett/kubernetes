@@ -4,8 +4,8 @@
 
 etcd_server_ip="192.168.1.110"
 api_server_ip="192.168.1.110"
-pod_cidr="10.200.0.0/16"
-service_cidr="10.32.0.0/24"
+pod_cidr="10.100.0.1/24"
+service_cidr="10.96.0.0/12"
 
 config_directory="/etc/kubernetes"
 pki_directory="/etc/kubernetes/pki"
@@ -13,7 +13,7 @@ etcd_tls_directory="/etc/etcd/tls"
 kubeconfig_directory="/etc/kubernetes/kubeconfig"
 
 node_hostnames=("node-0" "node-1" "node-2")
-cluster_name="kubernetes-pi"
+cluster_name="kubernetes"
 
 pod_infra_container_image="gcr.io/google-containers/pause-arm64:3.2"
 # ---
@@ -146,7 +146,7 @@ for node_hostname in "${node_hostnames[@]}"; do
 		cgroupDriver: "systemd"
 		clusterDomain: "cluster.local"
 		clusterDNS:
-		  - "10.32.0.10"
+		  - "10.96.0.10"
 		resolvConf: "/run/systemd/resolve/resolv.conf"
 		runtimeRequestTimeout: "15m"
 		tlsCertFile: "${pki_directory}/${node_hostname}.pem"

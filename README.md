@@ -1,41 +1,36 @@
 # Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
 
-This guide will setup a Kubernetes cluster "the hard way" on a Raspberry Pi 4 cluster using four
-physical machines. I have chosen not to use `kubeadm` in order to understand fully the deployment 
-process of a Kubernetes cluster deployed on-premise.
+This guide will setup a Kubernetes cluster on a set of four (4) Raspberry Pi 4s. 
 
-Here are the software choices for this configuration:
+The following choices were made for this configuration:
  - Debian 11 (Bullseye)
  - Kubernetes
-   - CRI-O
-   - runc
-   - kubenet
-   - ipvs
+   - CRI-O as the container runtime interface.
+   - runc (packaged by CRI-O) as the container runtime.
+   - IPVS as the default proxy mode.
+   - Cilium as the Pod Network add-on.
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
-The "testing" release of Debian has been chosen for it's support of cgroups v2 with a `systemd`
-version 244 or later. Older `systemd` versions do not support delegation of the `cpuset` controller.
-`systemd` version `247.3-3` is marked for release in Debian 11. The use of cgroups v2 is important
-since it supports imposing resource limitations on rootless containers.
 
-In the future, I would like to swap `flannel` for `calico` with eBGP 
-and network policies configured with the goal of provisioning a "production ready" cluster following
-the latest best practices.
-
-My local machine is a MacBook.
+The local machine used to deploy this cluster is a MacBook.
 
 ## Versions
 
- - Debian: `11 (Testing)`
- - iptables: `1.8.7 (nf_tables)`
- - Kubernetes: `1.21.0`
- - CFSSL: `1.5.0`
- - etcd: `3.4.15`
- - cni: `0.9.1`
- - runc: `1.0.0-rc93`
- - cri-o: `1.21.0-dev`
- - conmon: `2.0.26`
+| Application | Version           |
+|-------------|-------------------|
+| Debian      | 11 (Testing)      |
+| iptables    | 1.8.7 (nf_tables) |
+| kubeadm     | 1.21.1            |
+| kubectl     | 1.21.1            |
+| kubelet     | 1.21.1            |
+| cri-o       | 1.21.0            |
+| cri-o-runc  | 1.21.0-rc93       |
+| conmon      | 2.0.27-1          |
+| cni         | 0.8.7-00          |
+| etcd        | 3.4.13-0          |
+| cilium      | 1.10.0            |
+| cilium-cli  | 0.7.0             |
 
 ## Network CIDRs
 
@@ -43,45 +38,48 @@ My local machine is a MacBook.
  - Cluster CIDR: `10.200.0.0/16`
  - Service Cluster CIDR: `10.32.0.0/16`
 
-TODO:
-```
-cAdvisor is build without cgo and/or libpfm support. Perf event counters are not available.
-```
+Note: The "testing" release of Debian has been chosen for it's support of cgroups v2 with a 
+      `systemd` version 244 or later. Older `systemd` versions do not support delegation of the 
+      `cpuset` controller. `systemd` version `247.3-3` is marked for release in Debian 11. 
+
+      The use of cgroups v2 is important since it supports imposing resource limitations on rootless
+      containers.
+
 --- 
 
 ## Preparing the Hardware
 
 1. Download a Debian SD card image for the Raspberry Pi: https://raspi.debian.net/tested-images/
+
 2. Prepare the SD cards for each Raspberry Pi.
 
-   a. Flash the image to each SD card:
+    a. Flash the image to each SD card:
 
-   ```
-   xzcat 20210210_raspi_4_bullseye.img.xz | sudo dd of=/dev/disk2 bs=64k
-   ```
-   
-   b. Update the configuration settings of the image:
-   
-   ```
-   vim /Volumes/RASPIFIRM/sysconf.txt
-   # Uncomment and update the root_autherized_key value (e.g. pbcopy < ~/.ssh/id_ed25519.pub).
-   # Uncomment and update the hostname value (e.g. k8s-controller-0).
-   ```
-   
-   c. Unmount the SD card:
+    ```
+    xzcat 20210210_raspi_4_bullseye.img.xz | sudo dd of=/dev/disk2 bs=64k
+    ```
+    
+    b. Update the configuration settings of the image:
+    
+    ```
+    vim /Volumes/RASPIFIRM/sysconf.txt
+    # Uncomment and update the root_autherized_key value (e.g. pbcopy < ~/.ssh/id_ed25519.pub).
+    # Uncomment and update the hostname value (e.g. k8s-controller-0).
+    ```
+    c. Unmount the SD card:
 
-   ```
-   sudo diskutil unmount /Volumes/RASPIFIRM
-   ``` 
+    ```
+    sudo diskutil unmount /Volumes/RASPIFIRM
+    ``` 
 
-   d. Repeat for all four Raspberry Pis:
-   
-   ```
-   controller-0
-   node-0
-   node-1
-   node-2
-   ```
+    d. Repeat for all four Raspberry Pis:
+    
+    ```
+    controller-0
+    node-0
+    node-1
+    node-2
+    ```
 ### Preparing the OS
 
 1. Update the OS:
@@ -93,81 +91,81 @@ apt upgrade
 
 2. Check dmesg for errors.
 
-   a. Add the regulatory database for wireless adapters:
-   
-   ```
-   # Local machine
-   git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
-   cd wireless-regdb
-   git checkout <latest-release-tag>  # e.g. master-2020-11-20
-   
-   for host in controller-0 node-0 node-1 node-2
-     do scp regulatory.db regulatory.db.p7s root@$host:/root
-   done
-   
-   # Raspberry Pis
-   
-   mv /root/regulatory.db* /lib/firmware/
-   reboot
-   ```
+    a. Add the regulatory database for wireless adapters:
+    
+    ```
+    # Local machine
+    git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
+    cd wireless-regdb
+    git checkout <latest-release-tag>  # e.g. master-2020-11-20
+    
+    for host in controller-0 node-0 node-1 node-2
+      do scp regulatory.db regulatory.db.p7s root@$host:/root
+    done
+    
+    # Raspberry Pis
+    
+    mv /root/regulatory.db* /lib/firmware/
+    reboot
+    ```
 
-   b. Install the Bluetooth firmware:
-   
-   ```
-   firmware_repo_url="https://github.com/armbian/firmware/raw/master"
-   wget -O /lib/firmware/brcm/BCM4345C5.hcd "${firmware_repo_url}"/brcm/BCM4345C5.hcd
-   wget -O /lib/firmware/brcm/BCM4345C0.hcd "${firmware_repo_url}"/BCM4345C0.hcd
-   wget -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "${firmware_repo_url}"/brcm/brcmfmac43455-sdio.clm_blob
-   ```
+    b. Install the Bluetooth firmware:
+    
+    ```
+    firmware_repo_url="https://github.com/armbian/firmware/raw/master"
+    wget -O /lib/firmware/brcm/BCM4345C5.hcd "${firmware_repo_url}"/brcm/BCM4345C5.hcd
+    wget -O /lib/firmware/brcm/BCM4345C0.hcd "${firmware_repo_url}"/BCM4345C0.hcd
+    wget -O /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "${firmware_repo_url}"/brcm/brcmfmac43455-sdio.clm_blob
+    ```
 
 3. Configure a regular user.
 
-   a. Add the user.
+    a. Add the user.
 
-   ```
-   adduser nerditup
-   usermod –a –G sudo nerditup
-   ```
-   
-   b. Generate an SSH key.
+    ```
+    adduser nerditup
+    usermod –a –G sudo nerditup
+    ```
+    
+    b. Generate an SSH key.
 
-   ```
-   # As the regular user.
-   ssh-keygen -t ed25519
-   
-   # As root.
-   cp ~/.ssh/authorized_keys /home/nerditup/.ssh
-   chown nerditup:nerditup /home/nerditup/.ssh/authorized_keys
-   ```
+    ```
+    # As the regular user.
+    ssh-keygen -t ed25519
+    
+    # As root.
+    cp ~/.ssh/authorized_keys /home/nerditup/.ssh
+    chown nerditup:nerditup /home/nerditup/.ssh/authorized_keys
+    ```
 
-   c. Install `sudo`.
+    c. Install `sudo`.
 
-   ```
-   # As root.
-   apt install sudo
-   ```
-   
-   d. Login as the regular user.
+    ```
+    # As root.
+    apt install sudo
+    ```
+    
+    d. Login as the regular user.
 
 4. Update `/etc/hosts`.
 
-   a. Update the hostname:
-   
-   ```
-   # Example entries to update.
-   127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
-   ::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
-   ```
-   
-   b. Add the cluster IPs:
-   
-   ```
-   # Kubernetes Cluster
-   192.168.1.110   k8s-controller-0
-   192.168.1.120   k8s-node-0
-   192.168.1.121   k8s-node-1
-   192.168.1.122   k8s-node-2
-   ```
+    a. Update the hostname:
+    
+    ```
+    # Example entries to update.
+    127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
+    ::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+    ```
+    
+    b. Add the cluster IPs:
+    
+    ```
+    # Kubernetes Cluster
+    192.168.1.110   k8s-controller-0
+    192.168.1.120   k8s-node-0
+    192.168.1.121   k8s-node-1
+    192.168.1.122   k8s-node-2
+    ```
 
 5. Copy SSH keys to each host:
 
@@ -193,7 +191,7 @@ confirm,
 cat /proc/cgroups | column -t
 ```
 
-8. Enable `overlay` and `br_netfilter` kernel modules.
+8. Enable bridge networking in the kernel.
 
 On all machines:
 
@@ -202,11 +200,32 @@ vi /etc/modules-load.d/modules.conf
 
 # Add the following to this file.
 
-overlay
 br_netfilter
 ```
 
-9. Enable ip forwarding.
+9. Enable IPVS the kernel.
+
+On all machines:
+
+```
+# Install the support programs to interface with IPVS.
+
+apt install ipvsadm ipset
+
+# Load the kernel modules.
+
+vi /etc/modules-load.d/modules.conf
+
+# Add the following to this file.
+
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+nf_conntrack
+```
+
+10. Enable iptables filtering on the bridge network.
 
 On all machines:
 
@@ -217,14 +236,6 @@ vi /etc/sysctl.d/local.conf
 
 net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-net.ipv4.ip_forward = 1
-```
-
-10. Enable `systemd-resolved.service`.
-
-```
-systemctl enable systemd-resolved.service
-systemctl start systemd-resolved.service
 ```
 
 11. Setup locales.
@@ -237,6 +248,180 @@ dpkg-reconfigure locales
 ```
 
 12. Reboot all machines.
+
+---
+
+## Install the Container Runtime
+
+ - Ensure the container runtime is configured to use `systemd` as the cgroup driver.
+ - Choosing CRI-O
+
+### Preparing the OS
+
+1. Enable the `overlay` kernel module.
+
+On all machines:
+
+```
+vi /etc/modules-load.d/modules.conf
+
+# Add the following to this file.
+
+overlay
+```
+
+2. Enable ipv4 forwarding.
+
+On all machines:
+
+```
+vi /etc/sysctl.d/local.conf
+
+# Add the following to this file.
+
+net.ipv4.ip_forward = 1
+```
+
+3. Install `curl` and `gnupg`.
+
+On all machines:
+
+```
+apt install curl
+apt install gnupg
+```
+
+4. Add openSUSE's OBS repository to APT.
+
+On all machines:
+
+```
+# Run the following commands as root.
+
+export VERSION=1.21
+
+export OS=Debian_Testing
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+
+# Since cri-o for arm64 is not published to the Debian_Testing repository, xUbuntu_20.04 is used instead.
+
+export OS=xUbuntu_20.04
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+
+apt update
+apt upgrade
+```
+
+### Install the Container Runtime
+
+On all machines:
+
+```
+apt install cri-o cri-o-runc
+```
+
+# The Easy Way
+
+## Install kubeadm, kubelet and kubectl
+
+### Prepare the OS
+
+1. Install `apt-transport-https` and `ca-certificates`.
+
+On all machines:
+
+```
+apt install apt-transport-https ca-certificates
+```
+
+2. Add the Kubernetes `apt` repository.
+
+```
+# Run the following commands as root.
+
+curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+```
+
+### Install kubeadm, kubelet and kubectl
+
+```
+sudo apt update
+sudo apt install kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+```
+
+## Prepare a kubeadm-init.yaml File
+
+On the control plane host(s):
+
+```
+sudo vi /etc/kubernetes/kubeadm-init.yaml
+
+# Add the following to this file.
+
+# Use Default Init Configuration
+
+# apiVersion: kubeadm.k8s.io/v1beta2
+# kind: InitConfiguration
+
+# ---
+
+apiVersion: kubeadm.k8s.io/v1beta2
+kind: ClusterConfiguration
+controlPlaneEndpoint: "192.168.1.110"
+
+---
+
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+clusterCIDR: "10.100.0.1/24"
+mode: "ipvs"
+
+# Use Default Kubelet Configuration
+
+# ---
+# apiVersion: kubelet.config.k8s.io/v1beta1
+# kind: KubeletConfiguration
+```
+
+## Initialize the Control Plane
+
+On the control plane host(s):
+
+```
+sudo kubeadm init --config /etc/kubernetes/kubeadm-init.config
+```
+
+## Install the Network Add-on
+
+On one of the control plane hosts:
+
+```
+curl -LO https://github.com/cilium/cilium-cli/releases/latest/download/cilium-linux-arm64.tar.gz
+sudo tar xzvfC cilium-linux-arm64.tar.gz /usr/local/bin
+rm cilium-linux-arm64.tar.gz
+```
+
+```
+cilium install --version v1.10.0
+```
+
+## Initialize the Worker Nodes
+
+On the worker node hosts:
+
+```
+# The complete command (with tokens) is taken from the output of the control plane initialization.
+
+kubeadm join --token <token> <control-plane-host>:<control-plane-port> --discovery-token-ca-cert-hash sha256:<hash>
+```
+
+# The Hard Way
 
 ---
 
@@ -412,12 +597,13 @@ tar -xvf etcd-v3.4.15-linux-arm64.tar
 sudo mv etcd-v3.4.15-linux-arm64/etcd* /usr/local/bin
 ```
 
-All certificates will be kept in `/etc/etcd/tls`.
+All certificates will be kept in `/etc/kubernetes/pki/etcd`.
+/etcd/kubernetes/pki/etcd/etcd-ca.crt
 
 ```
-sudo mkdir -p /etc/etcd/tls /var/lib/etcd
+sudo mkdir -p /etc/kubernetes/pki/etcd /var/lib/etcd
 sudo chmod 700 /var/lib/etcd
-sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/tls
+sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/kubernetes/pki/etcd
 ```
 
 ### Generate the `etcd` configuration file.
@@ -425,7 +611,7 @@ sudo cp ca.pem kubernetes-key.pem kubernetes.pem /etc/etcd/tls
 ```
 controller_hostname="controller-0"
 controller_ip="192.168.1.110"
-etcd_pki_directory="/etc/etcd/tls"
+etcd_pki_directory="/etc/kubernetes/pki/etcd"
 
 cat > etcd-conf.yaml <<- EOF
 	# This is the configuration file for the etcd server.
@@ -525,32 +711,32 @@ cat > etcd-conf.yaml <<- EOF
 	
 	client-transport-security:
 	  # Path to the client server TLS cert file.
-	  cert-file: '/etc/etcd/tls/kubernetes.pem'
+	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
 	
 	  # Path to the client server TLS key file.
-	  key-file: '/etc/etcd/tls/kubernetes-key.pem'
+	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
 	
 	  # Enable client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the client server TLS trusted CA cert file.
-	  trusted-ca-file: '/etc/etcd/tls/ca.pem'
+	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
 	
 	  # Client TLS using generated certificates
 	  auto-tls: false
 	
 	peer-transport-security:
 	  # Path to the peer server TLS cert file.
-	  cert-file: '/etc/etcd/tls/kubernetes.pem'
+	  cert-file: '/etc/kubernetes/pki/etcd/kubernetes.pem'
 	
 	  # Path to the peer server TLS key file.
-	  key-file: '/etc/etcd/tls/kubernetes-key.pem'
+	  key-file: '/etc/kubernetes/pki/etcd/kubernetes-key.pem'
 	
 	  # Enable peer client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the peer server TLS trusted CA cert file.
-	  trusted-ca-file: '/etc/etcd/tls/ca.pem'
+	  trusted-ca-file: '/etc/kubernetes/pki/etcd/ca.pem'
 	
 	  # Peer TLS using generated certificates.
 	  auto-tls: false
