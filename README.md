@@ -1,4 +1,4 @@
-# Kubernetes Raspberry Pi Cluster Setup (The Hard Way)
+# Kubernetes Raspberry Pi Cluster Setup
 
 This guide will setup a Kubernetes cluster on a set of four (4) Raspberry Pi 4s. 
 
@@ -35,8 +35,8 @@ The local machine used to deploy this cluster is a MacBook.
 ## Network CIDRs
 
  - Host CIDR: `192.168.1.0/16`
- - Cluster CIDR: `10.200.0.0/16`
- - Service Cluster CIDR: `10.32.0.0/16`
+ - Cluster CIDR: `10.0.0.0/8`
+ - Service Cluster CIDR: `10.96.0.0/12`
 
 Note: The "testing" release of Debian has been chosen for it's support of cgroups v2 with a 
       `systemd` version 244 or later. Older `systemd` versions do not support delegation of the 
@@ -340,6 +340,8 @@ apt install apt-transport-https ca-certificates
 
 2. Add the Kubernetes `apt` repository.
 
+On all machines:
+
 ```
 # Run the following commands as root.
 
@@ -349,13 +351,15 @@ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https:/
 
 ### Install kubeadm, kubelet and kubectl
 
+On all machines:
+
 ```
 sudo apt update
 sudo apt install kubelet kubeadm kubectl
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
 
-## Prepare a kubeadm-init.yaml File
+## Prepare a kubeadm.conf File
 
 On the control plane host(s):
 
@@ -379,7 +383,6 @@ controlPlaneEndpoint: "192.168.1.110"
 
 apiVersion: kubeproxy.config.k8s.io/v1alpha1
 kind: KubeProxyConfiguration
-clusterCIDR: "10.100.0.1/24"
 mode: "ipvs"
 
 # Use Default Kubelet Configuration
