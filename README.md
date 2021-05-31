@@ -12,7 +12,6 @@ The following choices were made for this configuration:
 
 RBAC is used as the Authorization Mode in order to implement the principle of least privilege.
 
-
 The local machine used to deploy this cluster is a MacBook.
 
 ## Versions
@@ -20,17 +19,15 @@ The local machine used to deploy this cluster is a MacBook.
 | Application | Version           |
 |-------------|-------------------|
 | Debian      | 11 (Testing)      |
-| iptables    | 1.8.7 (nf_tables) |
-| kubeadm     | 1.21.1            |
-| kubectl     | 1.21.1            |
-| kubelet     | 1.21.1            |
+| Linux       | 5.10.28-1         |
+| Kubernetes  | 1.21.1            |
+| etcd        | 3.4.13-0          |
+| cni         | 0.8.7-00          |
 | cri-o       | 1.21.0            |
 | cri-o-runc  | 1.21.0-rc93       |
-| conmon      | 2.0.27-1          |
-| cni         | 0.8.7-00          |
-| etcd        | 3.4.13-0          |
+| iptables    | 1.8.7 (nf_tables) |
+| ipvs        | 1.2.1             |
 | cilium      | 1.10.0            |
-| cilium-cli  | 0.7.0             |
 
 ## Network CIDRs
 
