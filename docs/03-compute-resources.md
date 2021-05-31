@@ -68,7 +68,6 @@ sudo diskutil unmount /Volumes/RASPIFIRM
 
 Repeat this process for all Raspberry Pis.
 
-
 ## Configuring SSH Access
 
 SSH access as the root user should be available since the image configuration contains the public SSH key of the laptop. Updating `/etc/hosts` might be required to access the Raspberry Pis depending on your network configuration.
@@ -90,6 +89,71 @@ root@controller-0:~$ exit
 ```
 logout
 Connection to controller-0 closed.
+```
+
+## Preparing the Base OS
+
+The Raspberry Pi images used are not fully equipped to run Kubernetes out of the box. The following steps will prepare the OS by cleaning up the `dmesg` logs, setup a regular user and ensure configuration that applies to all hosts is applied. Unfortunately, this is a manual process, for now!
+
+The following is assumed to be done as the root user on all machines.
+
+### Update the OS Packages
+
+```
+apt update
+apt upgrade
+```
+
+### Check `dmesg` for Errors
+
+```
+dmesg
+```
+
+#### Add the Regulatory Database for Wireless Adapters
+
+Since `git` is not available on the base Debian image, grab the necessary files using your laptop,
+
+```
+git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
+cd wireless-regdb
+git checkout <latest-release-tag>  # e.g. master-2020-11-20
+```
+
+```
+for host in controller-0 node-0 node-1 node-2
+  do scp regulatory.db regulatory.db.p7s root@$host:/root
+done
+```
+
+Now on the Raspberry Pis, we can put the firmware in the correct location.
+
+```
+mv /root/regulatory.db* /lib/firmware/
+```
+
+#### Install the Bluetooth Firmware
+
+```
+curl -o /lib/firmware/brcm/BCM4345C5.hcd "https://github.com/armbian/firmware/raw/master/brcm/BCM4345C5.hcd"
+curl -o /lib/firmware/brcm/BCM4345C0.hcd "https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd"
+curl -o /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob"
+```
+
+#### Validate
+
+```
+reboot
+```
+
+```
+dmesg
+```
+
+> Output
+
+```
+# No errors in the output.
 ```
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
