@@ -114,6 +114,8 @@ dmesg
 
 Since `git` is not available on the base Debian image, grab the necessary files using your laptop,
 
+##### Laptop
+
 ```
 git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
 cd wireless-regdb
@@ -126,7 +128,9 @@ for host in controller-0 node-0 node-1 node-2
 done
 ```
 
-Now on the Raspberry Pis, we can put the firmware in the correct location.
+Now on the Raspberry Pis, we can put the firmware in the correct location,
+
+##### Raspberry Pis
 
 ```
 mv /root/regulatory.db* /lib/firmware/
