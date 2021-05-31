@@ -142,18 +142,7 @@ curl -o /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "https://github.com/armbi
 
 #### Validate
 
-```
-reboot
-```
+Reboot all nodes and then check the `dmesg` output again to verify all errors have been resolved.
 
-```
-dmesg
-```
-
-> Output
-
-```
-# No errors in the output.
-```
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)
