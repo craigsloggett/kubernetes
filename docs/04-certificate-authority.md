@@ -1,6 +1,12 @@
 # Provisioning CA and Generating TLS Certificates
 
-The following is to be run on a local machine.
+Using CloudFlare's PKI toolkit, `cfssl`, a Certificate Authority is bootstrapped and then used to generate TLS certificates for the following components: 
+ - etcd
+ - kube-apiserver
+ - kube-controller-manager
+ - kube-scheduler
+ - kubelet
+ - kube-proxy
 
 ## Authentication
 
@@ -65,3 +71,5 @@ for host in controller-0; do
     service-account-key.pem service-account.pem nerditup@${host}:~
 done
 ```
+
+Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md)
