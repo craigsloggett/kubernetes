@@ -1,4 +1,5 @@
 **/*.pem
 **/*.csr
-**/*.conf
+**/certs
+**/config
 **/*encryption-config.yaml
