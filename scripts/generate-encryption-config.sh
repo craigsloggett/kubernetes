@@ -5,8 +5,8 @@
 encryption_key="$(head -c 32 /dev/urandom | base64)"
 
 # Create a place to store the configuration file.
-[ ! -d "../config" ] && mkdir "../config"
-cd "../config" || exit
+[ ! -d "../resources" ] && mkdir "../resources"
+cd "../resources" || exit
 
 # ---
 
