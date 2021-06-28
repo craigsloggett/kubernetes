@@ -2,4 +2,5 @@
 **/*.csr
 **/certs
 **/config
+**/etcd
 **/*encryption-config.yaml
