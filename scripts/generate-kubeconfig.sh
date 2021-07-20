@@ -10,8 +10,8 @@ public_ip="192.168.1.110"
 [ -d "../certs" ] || exit
 
 # Create a place to store the configuration files.
-[ ! -d "../config" ] && mkdir "../config"
-cd "../config" || exit
+[ ! -d "../kubeconfig" ] && mkdir "../kubeconfig"
+cd "../kubeconfig" || exit
 
 # ---
 
@@ -68,7 +68,7 @@ kubectl config use-context "system:kube-proxy@${cluster_name}" --kubeconfig=prox
 kubectl config set-cluster ${cluster_name} \
   --certificate-authority=../certs/ca.pem \
   --embed-certs=true \
-  --server=https://127.0.0.1:6443 \
+  --server=https://${public_ip}:6443 \
   --kubeconfig=controller-manager.conf
 
 kubectl config set-credentials system:kube-controller-manager \
@@ -91,7 +91,7 @@ kubectl config use-context "system:kube-controller-manager@${cluster_name}" --ku
 kubectl config set-cluster ${cluster_name} \
   --certificate-authority=../certs/ca.pem \
   --embed-certs=true \
-  --server=https://127.0.0.1:6443 \
+  --server=https://${public_ip}:6443 \
   --kubeconfig=scheduler.conf
 
 kubectl config set-credentials system:kube-scheduler \
@@ -114,7 +114,7 @@ kubectl config use-context "system:kube-scheduler@${cluster_name}" --kubeconfig=
 kubectl config set-cluster ${cluster_name} \
   --certificate-authority=../certs/ca.pem \
   --embed-certs=true \
-  --server=https://127.0.0.1:6443 \
+  --server=https://${public_ip}:6443 \
   --kubeconfig=admin.conf
 
 kubectl config set-credentials kubernetes-admin \

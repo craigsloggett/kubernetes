@@ -1,20 +1,24 @@
 # Bootstrapping the Kubernetes Control Plane
 
-In this lab you will bootstrap the Kubernetes control plane across three compute instances and configure it for high availability. You will also create an external load balancer that exposes the Kubernetes API Servers to remote clients. The following components will be installed on each node: Kubernetes API Server, Scheduler, and Controller Manager.
+Since there is only a single controller host, this will be setup without high-availability. All traffic will go to the node directly.
+
+The control plane consists of the following components:
+- API Server
+- Scheduler
+- Controller Manager
+
+## Genertaing the Kubernetes Control Plane Configuration
+
+All service and kubeconfig files are generated using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/scripts/generate-control-plane-config.sh
+
+Generate the configuration files and then copy them to each controller instance: `controller-0`. 
 
 ## Prerequisites
 
-The commands in this lab must be run on each controller instance: `controller-0`, `controller-1`, and `controller-2`. Login to each controller instance using the `gcloud` command. Example:
+The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh`.
 
-```
-gcloud compute ssh controller-0
-```
-
-### Running commands in parallel with tmux
-
-[tmux](https://github.com/tmux/tmux/wiki) can be used to run commands on multiple compute instances at the same time. See the [Running commands in parallel with tmux](01-prerequisites.md#running-commands-in-parallel-with-tmux) section in the Prerequisites lab.
-
-## Provision the Kubernetes Control Plane
+## Prepare the Configuration Directory
 
 Create the Kubernetes configuration directory:
 
@@ -28,10 +32,10 @@ Download the official Kubernetes release binaries:
 
 ```
 wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kube-apiserver" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kube-controller-manager" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kube-scheduler" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kubectl"
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-apiserver" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-controller-manager" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-scheduler" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
 ```
 
 Install the Kubernetes binaries:
@@ -55,23 +59,6 @@ Install the Kubernetes binaries:
 }
 ```
 
-The instance internal IP address will be used to advertise the API Server to members of the cluster. Retrieve the internal IP address for the current compute instance:
-
-```
-INTERNAL_IP=$(curl -s -H "Metadata-Flavor: Google" \
-  http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
-```
-
-```
-REGION=$(curl -s -H "Metadata-Flavor: Google" \
-  http://metadata.google.internal/computeMetadata/v1/project/attributes/google-compute-default-region)
-```
-
-```
-KUBERNETES_PUBLIC_ADDRESS=$(gcloud compute addresses describe kubernetes-the-hard-way \
-  --region $REGION \
-  --format 'value(address)')
-```
 
 Create the `kube-apiserver.service` systemd unit file:
 
