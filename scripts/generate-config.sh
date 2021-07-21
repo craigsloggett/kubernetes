@@ -9,23 +9,11 @@ cd "../config" || exit
 
 # ---
 
-
-etcd_server_ip="192.168.1.110"
-api_server_ip="192.168.1.110"
-pod_cidr="10.100.0.1/24"
-service_cidr="10.96.0.0/12"
-
-node_hostnames=("node-0" "node-1" "node-2")
-cluster_name="kubernetes"
-
-pod_infra_container_image="gcr.io/google-containers/pause-arm64:3.2"
-
-# ---
-
 # Kubernetes API Server Configuration Parameters
 
-advertise_address="192.168.1.110"
+config_directory="/etc/kubernetes"
 pki_directory="/etc/kubernetes/pki"
+advertise_address="192.168.1.110"
 service_cluster_ip_range="10.96.0.0/12"
 
 # Kubernetes API Server
@@ -39,24 +27,26 @@ cat > kube-apiserver.service <<- EOF
 	ExecStart=/usr/local/bin/kube-apiserver \\
 	  --advertise-address=${advertise_address} \\
 	  --allow-privileged=true \\
+	  --apiserver-count=1 \\
+	  --audit-log-maxage=30 \\
+	  --audit-log-maxbackup=3 \\
+	  --audit-log-maxsize=100 \\
+	  --audit-log-path=/var/log/audit.log \\
 	  --authorization-mode=Node,RBAC \\
-	  --client-ca-file=${pki_directory}/ca.pem \\
+	  --bind-address=0.0.0.0 \\
+	  --client-ca-file=${pki_directory}/ca.crt \\
 	  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
+	  --encryption-provider-config=${config_directory}/encryption-config.yaml \\
 	  --etcd-cafile=${pki_directory}/etcd/ca.crt \\
-	  --etcd-certfile=${pki_directory}/etcd/apiserver-etcd-client.crt \\
-	  --etcd-keyfile=${pki_directory}/etcd/apiserver-etcd-client.key \\
+	  --etcd-certfile=${pki_directory}/etcd/server.crt \\
+	  --etcd-keyfile=${pki_directory}/etcd/server.key \\
 	  --etcd-servers=https://127.0.0.1:2379 \\
+	  --event-ttl=1h \\
 	  --insecure-port=0 \\
-	  --kubelet-client-certificate=${pki_directory}/apiserver-kubelet-client.crt \\
-	  --kubelet-client-key=${pki_directory}/apiserver-kubelet-client.key \\
+	  --kubelet-certificate-authority=${pki_directory}/ca.crt \\
+	  --kubelet-client-certificate=${pki_directory}/apiserver.crt \\
+	  --kubelet-client-key=${pki_directory}/apiserver.key \\
 	  --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname \\
-	  --proxy-client-cert-file=${pki_directory}/front-proxy-client.crt \\
-	  --proxy-client-key-file=${pki_directory}/front-proxy-client.key \\
-	  --requestheader-allowed-names=front-proxy-client \\
-	  --requestheader-client-ca-file=${pki_directory}/front-proxy-ca.crt \\
-	  --requestheader-extra-headers-prefix=X-Remote-Extra- \\
-	  --requestheader-group-headers=X-Remote-Group \\
-	  --requestheader-username-headers=X-Remote-User \\
 	  --secure-port=6443 \\
 	  --service-account-issuer=https://kubernetes.default.svc.cluster.local \\
 	  --service-account-key-file=${pki_directory}/sa.pub \\
@@ -64,16 +54,7 @@ cat > kube-apiserver.service <<- EOF
 	  --service-cluster-ip-range=${service_cluster_ip_range} \\
 	  --tls-cert-file=${pki_directory}/apiserver.crt \\
 	  --tls-private-key-file=${pki_directory}/apiserver.key \\
-	  --kubelet-certificate-authority=${pki_directory}/ca.pem \\
 	  --anonymous-auth=false \\
-	  --apiserver-count=1 \\
-	  --audit-log-maxage=30 \\
-	  --audit-log-maxbackup=3 \\
-	  --audit-log-maxsize=100 \\
-	  --audit-log-path=/var/log/audit.log \\
-	  --bind-address=0.0.0.0 \\
-	  --event-ttl=1h \\
-	  --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
 	  --external-hostname=${advertise_address} \\
 	  --runtime-config='api/all=true' \\
 	  --service-node-port-range=30000-32767 \\
@@ -102,9 +83,7 @@ cat > kube-controller-manager.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-controller-manager \\
-	  --authentication-kubeconfig=${config_directory}/controller-manager.conf \\
-	  --authorization-kubeconfig=${config_directory}/controller-manager.conf \\
-	  --bind-address=127.0.0.1 \\
+	  --bind-address=0.0.0.0 \\
 	  --client-ca-file=${pki_directory}/ca.crt \\
 	  --cluster-name=kubernetes \\
 	  --cluster-signing-cert-file=${pki_directory}/ca.crt \\
@@ -112,13 +91,10 @@ cat > kube-controller-manager.service <<- EOF
 	  --kubeconfig=${config_directory}/controller-manager.conf \\
 	  --leader-elect=true \\
 	  --port=0 \\
-	  --requestheader-client-ca-file=${pki_directory}/front-proxy-ca.crt \\
 	  --root-ca-file=${pki_directory}/ca.crt \\
 	  --service-account-private-key-file=${pki_directory}/sa.key \\
-	  --use-service-account-credentials=true \\
-	  --allocate-node-cidrs=true \\
-	  --node-cidr-mask-size=23 \\
 	  --service-cluster-ip-range=${service_cluster_ip_range} \\
+	  --use-service-account-credentials=true \\
 	  --v=2
 	Restart=on-failure
 	RestartSec=5
@@ -132,12 +108,10 @@ EOF
 # Kubernetes Scheduler Configuration Parameters
 
 config_directory="/etc/kubernetes"  # Duplicated above.
-pki_directory="/etc/kubernetes/pki"  # Duplicated above.
-service_cluster_ip_range="10.96.0.0/12"  # Duplicated above.
 
 # Kubernetes Scheduler
 
-cat > kube-scheduler.yaml <<- EOF
+cat > scheduler.yaml <<- EOF
 	apiVersion: kubescheduler.config.k8s.io/v1beta1
 	kind: KubeSchedulerConfiguration
 	clientConnection:
@@ -153,7 +127,7 @@ cat > kube-scheduler.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-scheduler \\
-	  --config=${config_directory}/kube-scheduler.yaml \\
+	  --config=${config_directory}/scheduler.yaml \\
 	  --v=2
 	Restart=on-failure
 	RestartSec=5
@@ -161,6 +135,11 @@ cat > kube-scheduler.service <<- EOF
 	[Install]
 	WantedBy=multi-user.target
 EOF
+
+
+
+
+
 
 # ---
 

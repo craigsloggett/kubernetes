@@ -112,32 +112,32 @@ cat > etcd-conf.yaml <<- EOF
 	
 	client-transport-security:
 	  # Path to the client server TLS cert file.
-	  cert-file: '${etcd_pki_directory}/server.pem'
+	  cert-file: '${etcd_pki_directory}/server.crt'
 	
 	  # Path to the client server TLS key file.
-	  key-file: '${etcd_pki_directory}/server-key.pem'
+	  key-file: '${etcd_pki_directory}/server.key'
 	
 	  # Enable client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the client server TLS trusted CA cert file.
-	  trusted-ca-file: '${etcd_pki_directory}/ca.pem'
+	  trusted-ca-file: '${etcd_pki_directory}/ca.crt'
 	
 	  # Client TLS using generated certificates
 	  auto-tls: false
 	
 	peer-transport-security:
 	  # Path to the peer server TLS cert file.
-	  cert-file: '${etcd_pki_directory}/peer.pem'
+	  cert-file: '${etcd_pki_directory}/peer.crt'
 	
 	  # Path to the peer server TLS key file.
-	  key-file: '${etcd_pki_directory}/peer-key.pem'
+	  key-file: '${etcd_pki_directory}/peer.key'
 	
 	  # Enable peer client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the peer server TLS trusted CA cert file.
-	  trusted-ca-file: '${etcd_pki_directory}/ca.pem'
+	  trusted-ca-file: '${etcd_pki_directory}/ca.crt'
 	
 	  # Peer TLS using generated certificates.
 	  auto-tls: false

@@ -7,10 +7,12 @@ The control plane consists of the following components:
 - Scheduler
 - Controller Manager
 
-## Genertaing the Kubernetes Control Plane Configuration
+Additionally, `kubectl` will be installed and configured to interact with the cluster.
 
-All service and kubeconfig files are generated using the script found here: 
-https://github.com/nerditup/kubernetes/blob/main/scripts/generate-control-plane-config.sh
+## Generating the Kubernetes Control Plane Configuration
+
+All configuration is generated using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/scripts/generate-config.sh
 
 Generate the configuration files and then copy them to each controller instance: `controller-0`. 
 
@@ -18,15 +20,7 @@ Generate the configuration files and then copy them to each controller instance:
 
 The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh`.
 
-## Prepare the Configuration Directory
-
-Create the Kubernetes configuration directory:
-
-```
-sudo mkdir -p /etc/kubernetes/config
-```
-
-### Download and Install the Kubernetes Controller Binaries
+### Download and Install the Kubernetes Control Plane Binaries
 
 Download the official Kubernetes release binaries:
 
@@ -47,143 +41,52 @@ Install the Kubernetes binaries:
 }
 ```
 
-### Configure the Kubernetes API Server
+## Configure the API Server
+
+All configuration and certificates will be kept in `/etc/kubernetes`.
 
 ```
-{
-  sudo mkdir -p /var/lib/kubernetes/
+# Setup the directories.
+sudo mkdir -p /etc/kubernetes/pki
 
-  sudo mv ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-    service-account-key.pem service-account.pem \
-    encryption-config.yaml /var/lib/kubernetes/
-}
+# Distribute the certificates.
+sudo cp ca.pem /etc/kubernetes/pki/ca.crt
+sudo cp ca-key.pem /etc/kubernetes/pki/ca.key
+sudo cp kubernetes.pem /etc/kubernetes/pki/apiserver.crt
+sudo cp kubernetes-key.pem /etc/kubernetes/pki/apiserver.key
+sudo cp service-account.pem /etc/kubernetes/pki/sa.crt
+sudo cp service-account-key.pem /etc/kubernetes/pki/sa.key
+
+# Distribute the encryption configuration file.
+sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
+
+# Distribute the API Server systemd unit file.
+sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service
 ```
 
+## Configure the Controller Manager
 
-Create the `kube-apiserver.service` systemd unit file:
-
-```
-cat <<EOF | sudo tee /etc/systemd/system/kube-apiserver.service
-[Unit]
-Description=Kubernetes API Server
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-apiserver \\
-  --advertise-address=${INTERNAL_IP} \\
-  --allow-privileged=true \\
-  --apiserver-count=3 \\
-  --audit-log-maxage=30 \\
-  --audit-log-maxbackup=3 \\
-  --audit-log-maxsize=100 \\
-  --audit-log-path=/var/log/audit.log \\
-  --authorization-mode=Node,RBAC \\
-  --bind-address=0.0.0.0 \\
-  --client-ca-file=/var/lib/kubernetes/ca.pem \\
-  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
-  --etcd-cafile=/var/lib/kubernetes/ca.pem \\
-  --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \\
-  --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \\
-  --etcd-servers=https://10.240.0.10:2379,https://10.240.0.11:2379,https://10.240.0.12:2379 \\
-  --event-ttl=1h \\
-  --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
-  --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \\
-  --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \\
-  --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \\
-  --runtime-config='api/all=true' \\
-  --service-account-key-file=/var/lib/kubernetes/service-account.pem \\
-  --service-account-signing-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-account-issuer=https://${KUBERNETES_PUBLIC_ADDRESS}:6443 \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
-  --service-node-port-range=30000-32767 \\
-  --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \\
-  --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-```
-
-### Configure the Kubernetes Controller Manager
-
-Move the `kube-controller-manager` kubeconfig into place:
+All configuration and certificates will be kept in `/etc/kubernetes`.
 
 ```
-sudo mv kube-controller-manager.kubeconfig /var/lib/kubernetes/
+# Distribute the Controller Manager configuration file.
+sudo cp controller-manager.conf /etc/kubernetes/controller-manager.conf
+
+# Distribute the Controller Manager systemd unit file.
+sudo cp kube-controller-manager.service /etc/systemd/system/kube-controller-manager.service
 ```
 
-Create the `kube-controller-manager.service` systemd unit file:
+## Configure the Scheduler
+
+All configuration and certificates will be kept in `/etc/kubernetes`.
 
 ```
-cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
-[Unit]
-Description=Kubernetes Controller Manager
-Documentation=https://github.com/kubernetes/kubernetes
+# Distribute the Scheduler configuration file.
+sudo cp scheduler.conf /etc/kubernetes/scheduler.conf
+sudo cp scheduler.yaml /etc/kubernetes/scheduler.yaml
 
-[Service]
-ExecStart=/usr/local/bin/kube-controller-manager \\
-  --bind-address=0.0.0.0 \\
-  --cluster-cidr=10.200.0.0/16 \\
-  --cluster-name=kubernetes \\
-  --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \\
-  --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \\
-  --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \\
-  --leader-elect=true \\
-  --root-ca-file=/var/lib/kubernetes/ca.pem \\
-  --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \\
-  --service-cluster-ip-range=10.32.0.0/24 \\
-  --use-service-account-credentials=true \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
-```
-
-### Configure the Kubernetes Scheduler
-
-Move the `kube-scheduler` kubeconfig into place:
-
-```
-sudo mv kube-scheduler.kubeconfig /var/lib/kubernetes/
-```
-
-Create the `kube-scheduler.yaml` configuration file:
-
-```
-cat <<EOF | sudo tee /etc/kubernetes/config/kube-scheduler.yaml
-apiVersion: kubescheduler.config.k8s.io/v1beta1
-kind: KubeSchedulerConfiguration
-clientConnection:
-  kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
-leaderElection:
-  leaderElect: true
-EOF
-```
-
-Create the `kube-scheduler.service` systemd unit file:
-
-```
-cat <<EOF | sudo tee /etc/systemd/system/kube-scheduler.service
-[Unit]
-Description=Kubernetes Scheduler
-Documentation=https://github.com/kubernetes/kubernetes
-
-[Service]
-ExecStart=/usr/local/bin/kube-scheduler \\
-  --config=/etc/kubernetes/config/kube-scheduler.yaml \\
-  --v=2
-Restart=on-failure
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-EOF
+# Distribute the Scheduler systemd unit file.
+sudo cp kube-scheduler.service /etc/systemd/system/kube-scheduler.service
 ```
 
 ### Start the Controller Services
