@@ -112,10 +112,10 @@ config_directory="/etc/kubernetes"  # Duplicated above.
 # Kubernetes Scheduler
 
 cat > scheduler.yaml <<- EOF
-	apiVersion: kubescheduler.config.k8s.io/v1beta1
+	apiVersion: kubescheduler.config.k8s.io/v1beta2
 	kind: KubeSchedulerConfiguration
 	clientConnection:
-	  kubeconfig: "${config_directory}/scheduler.kubeconfig"
+	  kubeconfig: "${config_directory}/scheduler.conf"
 	leaderElection:
 	  leaderElect: true
 EOF
@@ -135,6 +135,16 @@ cat > kube-scheduler.service <<- EOF
 	[Install]
 	WantedBy=multi-user.target
 EOF
+
+
+
+
+
+
+
+
+
+
 
 
 
