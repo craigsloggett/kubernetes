@@ -1,88 +1,75 @@
 # Bootstrapping the Kubernetes Worker Nodes
 
-In this lab you will bootstrap three Kubernetes worker nodes. The following components will be installed on each node: [runc](https://github.com/opencontainers/runc), [container networking plugins](https://github.com/containernetworking/cni), [containerd](https://github.com/containerd/containerd), [kubelet](https://kubernetes.io/docs/admin/kubelet), and [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
+The worker nodes consist of the following components:
+- Kubelet
+- Kube Proxy
+- The Container
+
+Additionally, `kubectl` will be installed and configured to interact with the cluster.
+
+## Generating the Kubernetes Worker Nodes Configuration
+
+All configuration is generated using the script found here: 
+https://github.com/nerditup/kubernetes/blob/main/scripts/generate-config.sh
+
+Generate the configuration files and then copy them to each worker node instance: `node-0`, `node-1` and `node-2`. 
+
+## Prerequisites
+
+The following commands must be run on each worker node instance: `node-0`, `node-1` and `node-2`. Login to each controller instance using `ssh`.
+
+
+
+[runc](https://github.com/opencontainers/runc), [container networking plugins](https://github.com/containernetworking/cni), [containerd](https://github.com/containerd/containerd), [kubelet](https://kubernetes.io/docs/admin/kubelet), and [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
 
 ## Prerequisites
 
 The commands in this lab must be run on each worker instance: `worker-0`, `worker-1`, and `worker-2`. Login to each worker instance using the `gcloud` command. Example:
 
-```
-gcloud compute ssh worker-0
-```
-
-### Running commands in parallel with tmux
-
-[tmux](https://github.com/tmux/tmux/wiki) can be used to run commands on multiple compute instances at the same time. See the [Running commands in parallel with tmux](01-prerequisites.md#running-commands-in-parallel-with-tmux) section in the Prerequisites lab.
 
 ## Provisioning a Kubernetes Worker Node
 
-Install the OS dependencies:
+### Download and Install the Kubernetes Worker Node Binaries
 
-```
-{
-  sudo apt-get update
-  sudo apt-get -y install socat conntrack ipset
-}
-```
-
-> The socat binary enables support for the `kubectl port-forward` command.
-
-### Disable Swap
-
-By default the kubelet will fail to start if [swap](https://help.ubuntu.com/community/SwapFaq) is enabled. It is [recommended](https://github.com/kubernetes/kubernetes/issues/7294) that swap be disabled to ensure Kubernetes can provide proper resource allocation and quality of service.
-
-Verify if swap is enabled:
-
-```
-sudo swapon --show
-```
-
-If output is empthy then swap is not enabled. If swap is enabled run the following command to disable swap immediately:
-
-```
-sudo swapoff -a
-```
-
-> To ensure swap remains off after reboot consult your Linux distro documentation.
-
-### Download and Install Worker Binaries
+Download the official Kubernetes release binaries:
 
 ```
 wget -q --show-progress --https-only --timestamping \
-  https://github.com/kubernetes-sigs/cri-tools/releases/download/v1.21.0/crictl-v1.21.0-linux-amd64.tar.gz \
-  https://github.com/opencontainers/runc/releases/download/v1.0.0-rc93/runc.amd64 \
-  https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz \
-  https://github.com/containerd/containerd/releases/download/v1.4.4/containerd-1.4.4-linux-amd64.tar.gz \
-  https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kubectl \
-  https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kube-proxy \
-  https://storage.googleapis.com/kubernetes-release/release/v1.21.0/bin/linux/amd64/kubelet
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubelet" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-proxy" \
+  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
 ```
 
-Create the installation directories:
-
-```
-sudo mkdir -p \
-  /etc/cni/net.d \
-  /opt/cni/bin \
-  /var/lib/kubelet \
-  /var/lib/kube-proxy \
-  /var/lib/kubernetes \
-  /var/run/kubernetes
-```
-
-Install the worker binaries:
+Install the Kubernetes binaries:
 
 ```
 {
-  mkdir containerd
-  tar -xvf crictl-v1.21.0-linux-amd64.tar.gz
-  tar -xvf containerd-1.4.4-linux-amd64.tar.gz -C containerd
-  sudo tar -xvf cni-plugins-linux-amd64-v0.9.1.tgz -C /opt/cni/bin/
-  sudo mv runc.amd64 runc
-  chmod +x crictl kubectl kube-proxy kubelet runc 
-  sudo mv crictl kubectl kube-proxy kubelet runc /usr/local/bin/
-  sudo mv containerd/bin/* /bin/
+  chmod +x kubelet kube-proxy kubectl
+  sudo mv kubelet kube-proxy kubectl /usr/local/bin/
 }
+```
+
+## Configure the API Server
+
+All configuration and certificates will be kept in `/etc/kubernetes`.
+
+```
+# Setup the directories.
+sudo mkdir -p /etc/kubernetes/pki
+
+# Distribute the certificates.
+sudo cp ca.pem /etc/kubernetes/pki/ca.crt
+sudo cp ca-key.pem /etc/kubernetes/pki/ca.key
+sudo cp kubernetes.pem /etc/kubernetes/pki/apiserver.crt
+sudo cp kubernetes-key.pem /etc/kubernetes/pki/apiserver.key
+sudo cp service-account.pem /etc/kubernetes/pki/sa.crt
+sudo cp service-account-key.pem /etc/kubernetes/pki/sa.key
+
+# Distribute the encryption configuration file.
+sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
+
+# Distribute the API Server systemd unit file.
+sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service
 ```
 
 ### Configure CNI Networking
