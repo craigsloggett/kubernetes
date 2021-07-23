@@ -136,21 +136,6 @@ cat > kube-scheduler.service <<- EOF
 	WantedBy=multi-user.target
 EOF
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # ---
 
 # Kubernetes Kubelet
