@@ -8,6 +8,8 @@ The Kubernetes [networking model](https://kubernetes.io/docs/concepts/cluster-ad
 
 > Setting up network policies is out of scope for this tutorial.
 
+All network traffic between compute resources is balanced using IPVS.
+
 ### Private Network
 
 This cluster will be deployed to a local network behind a physical router. Commodity hardware is sufficient for this tutorial. The subnet used by the router should be large to assign a private IP address to each physical node in the Kubernetes cluster. Ideally, a static address is assigned to each node in the router configuration, matching the MAC address of the Raspberry Pi network adapters to an IP.
@@ -148,5 +150,140 @@ curl -o /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "https://github.com/armbi
 
 Reboot all nodes and then check the `dmesg` output again to verify all errors have been resolved.
 
+### Configure a Regular User
+
+#### Add the User
+
+```
+adduser nerditup
+usermod –a –G sudo nerditup
+```
+
+#### Generate an SSH Key
+
+```
+# As the regular user.
+ssh-keygen -t ed25519
+```
+
+#### Install `sudo`
+
+```
+# As root.
+apt install sudo
+```
+
+Login as the regular user to confirm.
+
+### Update `/etc/hosts`
+
+#### Update the Hostname
+
+```
+# Example entries to update.
+127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
+::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+```
+
+#### Add the Cluster IPs
+
+```
+# Example Kubernetes Cluster
+192.168.1.110   controller-0
+192.168.1.120   node-0
+192.168.1.121   node-1
+192.168.1.122   node-2
+```
+
+### Copy SSH Keys to Each Host
+
+```
+# Example loop for controller-0.
+for i in node-0 node-1 node-2; do ssh-copy-id nerditup@$i; done
+```
+
+### Disable `swap`
+
+By default, the Debian image used for the Raspberry Pis doesn't use swap. To confirm,
+
+```
+cat /proc/swaps
+```
+
+### Enable cgroups
+
+By default, the Debian image used for the Raspberry Pis has all required cgroups enabled. To confirm,
+
+```
+cat /proc/cgroups | column -t
+```
+
+### Enable Bridge Networking in the Kernel
+
+Load the kernel module,
+
+```
+vi /etc/modules-load.d/modules.conf
+```
+
+Add the following line to this file,
+
+```
+br_netfilter
+```
+
+### Enable IPVS in the Kernel
+
+Install the support programs to interface with IPVS.
+
+```
+apt install ipvsadm ipset
+```
+
+Load the kernel modules,
+
+```
+vi /etc/modules-load.d/modules.conf
+```
+
+Add the following lines to this file,
+
+```
+ip_vs
+ip_vs_rr
+ip_vs_wrr
+ip_vs_sh
+nf_conntrack
+```
+
+### Enable `iptables` Filtering on the Bridge Network
+
+TODO: Try and remove this requirement: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf
+
+> the bridge module in the kernel has the default for all three of these values set to "1"
+
+Update the relevant kernel parameters,
+
+```
+vi /etc/sysctl.d/local.conf
+```
+
+Add the following lines to this filem
+
+```
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+```
+
+### Setup Locales
+
+```
+apt install locales
+dpkg-reconfigure locales
+```
+
+---
+
+Finally, reboot all machines.
 
 Next: [Provisioning a CA and Generating TLS Certificates](04-certificate-authority.md)

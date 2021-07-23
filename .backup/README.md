@@ -284,11 +284,18 @@ net.ipv4.ip_forward = 1
 On all machines:
 
 ```
-apt install curl
-apt install gnupg
+apt install curl gnupg
 ```
 
-4. Add openSUSE's OBS repository to APT.
+4. Install `apt-transport-https` and `ca-certificates`.
+
+On all machines:
+
+```
+apt install apt-transport-https ca-certificates
+```
+
+5. Add openSUSE's OBS repository to APT.
 
 On all machines:
 
@@ -327,15 +334,7 @@ apt install cri-o cri-o-runc
 
 ### Prepare the OS
 
-1. Install `apt-transport-https` and `ca-certificates`.
-
-On all machines:
-
-```
-apt install apt-transport-https ca-certificates
-```
-
-2. Add the Kubernetes `apt` repository.
+1. Add the Kubernetes `apt` repository.
 
 On all machines:
 
