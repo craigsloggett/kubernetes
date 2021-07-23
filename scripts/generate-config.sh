@@ -184,6 +184,8 @@ cat > kubelet.service <<- EOF
 	WantedBy=multi-user.target
 EOF
 
+# ---
+
 # Kubernetes Proxy
 
 cat > kube-proxy-config.yaml <<- EOF
