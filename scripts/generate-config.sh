@@ -140,6 +140,11 @@ EOF
 
 # Kubernetes Kubelet
 
+dns_service_ip="10.96.0.10"
+pki_directory="/etc/kubernetes/pki"  # Duplicated above.
+pod_infra_container_image="k8s.gcr.io/pause:3.4.1"
+config_directory="/etc/kubernetes"  # Duplicated above.
+
 for node_hostname in "${node_hostnames[@]}"; do
 	cat > ${node_hostname}-kubelet-config.yaml <<- EOF
 		kind: KubeletConfiguration
@@ -149,18 +154,22 @@ for node_hostname in "${node_hostnames[@]}"; do
 		    enabled: false
 		  webhook:
 		    enabled: true
+		    cacheTTL: 0s
 		  x509:
-		    clientCAFile: "${pki_directory}/ca.pem"
+		    clientCAFile: "${pki_directory}/ca.crt"
 		authorization:
 		  mode: Webhook
+		  webhook:
+		    cacheAuthorizedTTL: 0s
+		    cacheUnauthorizedTTL: 0s
 		cgroupDriver: "systemd"
 		clusterDomain: "cluster.local"
 		clusterDNS:
-		  - "10.96.0.10"
+		  - "${dns_service_ip}"
 		resolvConf: "/run/systemd/resolve/resolv.conf"
 		runtimeRequestTimeout: "15m"
-		tlsCertFile: "${pki_directory}/${node_hostname}.pem"
-		tlsPrivateKeyFile: "${pki_directory}/${node_hostname}-key.pem"
+		tlsCertFile: "${pki_directory}/${node_hostname}.crt"
+		tlsPrivateKeyFile: "${pki_directory}/${node_hostname}.key"
 	EOF
 done
 
@@ -173,7 +182,7 @@ cat > kubelet.service <<- EOF
 	ExecStart=/usr/local/bin/kubelet \\
 	  --config=${config_directory}/kubelet-config.yaml \\
 	  --container-runtime=remote \\
-	  --container-runtime-endpoint='unix:///var/run/crio/crio.sock' \\
+	  --container-runtime-endpoint='/var/run/crio/crio.sock' \\
 	  --kubeconfig=${kubeconfig_directory}/kubelet.kubeconfig \\
 	  --pod-infra-container-image='${pod_infra_container_image}' \\
 	  --v=2
@@ -194,7 +203,6 @@ cat > kube-proxy-config.yaml <<- EOF
 	clientConnection:
 	  kubeconfig: "${kubeconfig_directory}/kube-proxy.kubeconfig"
 	mode: "ipvs"
-	clusterCIDR: "${pod_cidr}"
 EOF
 
 cat > kube-proxy.service <<- EOF
