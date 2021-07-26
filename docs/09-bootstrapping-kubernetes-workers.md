@@ -1,9 +1,9 @@
 # Bootstrapping the Kubernetes Worker Nodes
 
 The worker nodes consist of the following components:
+- The Container Runtime
 - Kubelet
 - Kube Proxy
-- The Container
 
 Additionally, `kubectl` will be installed and configured to interact with the cluster.
 
@@ -18,14 +18,88 @@ Generate the configuration files and then copy them to each worker node instance
 
 The following commands must be run on each worker node instance: `node-0`, `node-1` and `node-2`. Login to each controller instance using `ssh`.
 
+## Install the Container Runtime
 
+NOTE: This might move to `03-compute-resources.md` if the Networking Plugin requires running a container on the controller node.
 
-[runc](https://github.com/opencontainers/runc), [container networking plugins](https://github.com/containernetworking/cni), [containerd](https://github.com/containerd/containerd), [kubelet](https://kubernetes.io/docs/admin/kubelet), and [kube-proxy](https://kubernetes.io/docs/concepts/cluster-administration/proxies).
+### Enable Overlay Networking in the Kernel
 
-## Prerequisites
+```
+vi /etc/modules-load.d/modules.conf
+```
 
-The commands in this lab must be run on each worker instance: `worker-0`, `worker-1`, and `worker-2`. Login to each worker instance using the `gcloud` command. Example:
+Add the following to this file,
 
+```
+overlay
+```
+
+### Enable IP Forwarding in the Kernel
+
+```
+vi /etc/sysctl.d/local.conf
+```
+
+Add the following to this file,
+
+```
+net.ipv4.ip_forward = 1
+```
+
+### Install `curl` and `gnupg`
+
+```
+apt install curl gnupg
+```
+
+### Install `apt-transport-https` and `ca-certificates`
+
+```
+apt install apt-transport-https ca-certificates
+```
+
+### Add openSUSE's OBS Repository to APT
+
+There are a few repositories to add for `cri-o` and the dependencies.
+
+```
+# Run the following commands as root.
+
+export VERSION=1.21
+export OS=Debian_Testing
+
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+```
+
+Since cri-o for arm64 is not published to the Debian_Testing repository, xUbuntu_20.04 is used instead,
+
+```
+# Run the following commands as root.
+
+export OS=xUbuntu_20.04
+
+echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+
+curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+```
+
+Update the repositories,
+
+```
+apt update
+apt upgrade
+```
+
+### Install the Container Runtime
+
+The `runc` packaged with `cri-o` is used to ensure compatibility between versions.
+
+```
+apt install cri-o cri-o-runc
+```
 
 ## Provisioning a Kubernetes Worker Node
 
@@ -47,29 +121,6 @@ Install the Kubernetes binaries:
   chmod +x kubelet kube-proxy kubectl
   sudo mv kubelet kube-proxy kubectl /usr/local/bin/
 }
-```
-
-## Configure the API Server
-
-All configuration and certificates will be kept in `/etc/kubernetes`.
-
-```
-# Setup the directories.
-sudo mkdir -p /etc/kubernetes/pki
-
-# Distribute the certificates.
-sudo cp ca.pem /etc/kubernetes/pki/ca.crt
-sudo cp ca-key.pem /etc/kubernetes/pki/ca.key
-sudo cp kubernetes.pem /etc/kubernetes/pki/apiserver.crt
-sudo cp kubernetes-key.pem /etc/kubernetes/pki/apiserver.key
-sudo cp service-account.pem /etc/kubernetes/pki/sa.crt
-sudo cp service-account-key.pem /etc/kubernetes/pki/sa.key
-
-# Distribute the encryption configuration file.
-sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
-
-# Distribute the API Server systemd unit file.
-sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service
 ```
 
 ### Configure CNI Networking
