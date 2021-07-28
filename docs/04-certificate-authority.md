@@ -68,7 +68,7 @@ Distribute the appropriate certificates and private keys to each controller host
 ```
 for host in controller-0; do
   scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-    service-account-key.pem service-account.pem nerditup@${host}:~
+    sa-key.pem sa.pem nerditup@${host}:~
 done
 ```
 
