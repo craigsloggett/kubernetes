@@ -49,7 +49,7 @@ cat > kube-apiserver.service <<- EOF
 	  --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname \\
 	  --secure-port=6443 \\
 	  --service-account-issuer=https://kubernetes.default.svc.cluster.local \\
-	  --service-account-key-file=${pki_directory}/sa.pub \\
+	  --service-account-key-file=${pki_directory}/sa.crt \\
 	  --service-account-signing-key-file=${pki_directory}/sa.key \\
 	  --service-cluster-ip-range=${service_cluster_ip_range} \\
 	  --tls-cert-file=${pki_directory}/apiserver.crt \\
@@ -112,7 +112,7 @@ config_directory="/etc/kubernetes"  # Duplicated above.
 # Kubernetes Scheduler
 
 cat > scheduler.yaml <<- EOF
-	apiVersion: kubescheduler.config.k8s.io/v1beta2
+	apiVersion: kubescheduler.config.k8s.io/v1beta1
 	kind: KubeSchedulerConfiguration
 	clientConnection:
 	  kubeconfig: "${config_directory}/scheduler.conf"

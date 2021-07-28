@@ -188,7 +188,7 @@ cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
-  -hostname="${controller_hostname}","${DEFAULT_KUBERNETES_HOSTNAMES}","${internal_cluster_dns_ip}","${controller_ip}" \
+  -hostname="${controller_hostname}","${DEFAULT_KUBERNETES_HOSTNAMES}","${internal_cluster_dns_ip}","${controller_ip}",127.0.0.1 \
   -profile=kubernetes \
   kubernetes-csr.json | cfssljson -bare kubernetes
 
