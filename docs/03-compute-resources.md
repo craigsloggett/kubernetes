@@ -151,17 +151,16 @@ mv /root/BCM4345C* /lib/firmware/brcm
 mv /root/brcmfmac43455-sdio.clm_blob /lib/firmware/brcm
 ```
 
-#### Install the Bluetooth Firmware
-
-```
-curl -o /lib/firmware/brcm/BCM4345C5.hcd -L "https://github.com/armbian/firmware/raw/master/BCM4345C5.hcd"
-curl -o /lib/firmware/brcm/BCM4345C0.hcd -L "https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd"
-curl -o /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob"
-```
-
 #### Validate
 
 Reboot all nodes and then check the `dmesg` output again to verify all errors have been resolved.
+
+### Setup Locales
+
+```
+apt install locales
+dpkg-reconfigure locales
+```
 
 ### Configure a Regular User
 
@@ -228,7 +227,7 @@ cat /proc/swaps
 By default, the Debian image used for the Raspberry Pis has all required cgroups enabled. To confirm,
 
 ```
-cat /proc/cgroups | column -t
+cat /proc/cgroups
 ```
 
 ### Enable Bridge Networking in the Kernel
@@ -286,13 +285,6 @@ Add the following lines to this filem
 ```
 net.bridge.bridge-nf-call-iptables = 1
 net.bridge.bridge-nf-call-ip6tables = 1
-```
-
-### Setup Locales
-
-```
-apt install locales
-dpkg-reconfigure locales
 ```
 
 ---
