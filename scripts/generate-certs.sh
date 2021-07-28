@@ -62,11 +62,14 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 
 cat > admin-csr.json <<- EOF
 	{
-	  "CN": "admin",
+	  "CN": "kubernetes-admin",
 	  "key": {
 	    "algo": "rsa",
 	    "size": 2048
-	  }
+	  },
+	  "names": [{
+	    "O": "system:masters"
+	  }]
 	}
 EOF
 
