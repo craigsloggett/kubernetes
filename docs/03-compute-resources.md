@@ -43,7 +43,7 @@ The compute instances in this lab will be provisioned using [Debian](https://www
 ### Download a Debian Raspberry Pi Image
 
 ```
-curl -o raspi_4_bullseye.img.xz -L "https://raspi.debian.net/verified/20210413_raspi_4_bullseye.img.xz"
+curl -o raspi_4_bullseye.img.xz -L "https://raspi.debian.net/verified/20210718_raspi_4_bullseye.img.xz"
 ```
 
 ### Flash the SD Card
@@ -112,11 +112,11 @@ apt upgrade
 dmesg
 ```
 
-#### Add the Regulatory Database for Wireless Adapters
+### Hardware Device Drivers
 
-Since `git` is not available on the base Debian image, grab the necessary files using your laptop,
+Since `git` and `curl` is not available on the base Debian image, grab the necessary files using your laptop,
 
-##### Laptop
+#### Regulatory Database for Wireless Adapters
 
 ```
 git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/sforshee/wireless-regdb
@@ -124,25 +124,38 @@ cd wireless-regdb
 git checkout <latest-release-tag>  # e.g. master-2020-11-20
 ```
 
+#### Bluetooth Firmware
+
+```
+curl -O -L "https://github.com/armbian/firmware/raw/master/BCM4345C5.hcd"
+curl -O -L "https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd"
+curl -O -L "https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob"
+```
+
+#### Copy to the Pis
+
 ```
 for host in controller-0 node-0 node-1 node-2
-  do scp regulatory.db regulatory.db.p7s root@$host:/root
+  do scp regulatory.db regulatory.db.p7s BCM4345C5.hcd BCM4345C0.hcd brcmfmac43455-sdio.clm_blob root@$host:/root
 done
 ```
 
 Now on the Raspberry Pis, we can put the firmware in the correct location,
 
-##### Raspberry Pis
+```
+mv /root/regulatory.db* /lib/firmware
+```
 
 ```
-mv /root/regulatory.db* /lib/firmware/
+mv /root/BCM4345C* /lib/firmware/brcm
+mv /root/brcmfmac43455-sdio.clm_blob /lib/firmware/brcm
 ```
 
 #### Install the Bluetooth Firmware
 
 ```
-curl -o /lib/firmware/brcm/BCM4345C5.hcd "https://github.com/armbian/firmware/raw/master/brcm/BCM4345C5.hcd"
-curl -o /lib/firmware/brcm/BCM4345C0.hcd "https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd"
+curl -o /lib/firmware/brcm/BCM4345C5.hcd -L "https://github.com/armbian/firmware/raw/master/BCM4345C5.hcd"
+curl -o /lib/firmware/brcm/BCM4345C0.hcd -L "https://github.com/armbian/firmware/raw/master/BCM4345C0.hcd"
 curl -o /lib/firmware/brcm/brcmfmac43455-sdio.clm_blob "https://github.com/armbian/firmware/raw/master/brcm/brcmfmac43455-sdio.clm_blob"
 ```
 
