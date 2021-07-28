@@ -197,11 +197,11 @@ EOF
 
 # Kubernetes Proxy
 
-cat > kube-proxy-config.yaml <<- EOF
+cat > proxy.yaml <<- EOF
 	kind: KubeProxyConfiguration
 	apiVersion: kubeproxy.config.k8s.io/v1alpha1
 	clientConnection:
-	  kubeconfig: "${kubeconfig_directory}/kube-proxy.kubeconfig"
+	  kubeconfig: "${kubeconfig_directory}/proxy.conf"
 	mode: "ipvs"
 EOF
 
@@ -212,7 +212,7 @@ cat > kube-proxy.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-proxy \\
-	  --config=${config_directory}/kube-proxy-config.yaml
+	  --config=${config_directory}/proxy.yaml
 	Restart=on-failure
 	RestartSec=5
 	
