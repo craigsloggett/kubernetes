@@ -18,8 +18,8 @@ The following commands must be run on each controller instance: `controller-0`. 
 ### Download and Install the etcd Binaries
 
 ```
-wget "https://github.com/etcd-io/etcd/releases/download/v3.4.13/etcd-v3.4.13-linux-arm64.tar"
-tar -xvf etcd-v3.4.13-linux-arm64.tar
+wget "https://github.com/etcd-io/etcd/releases/download/v3.4.13/etcd-v3.4.13-linux-arm64.tar.gz"
+tar -xzvf etcd-v3.4.13-linux-arm64.tar.gz
 sudo mv etcd-v3.4.13-linux-arm64/etcd* /usr/local/bin
 ```
 
@@ -65,10 +65,10 @@ sudo systemctl start etcd.service
 
 ```
 sudo ETCDCTL_API=3 etcdctl member list \
-  --endpoints=https://127.0.0.1:2379 \
-  --cacert=${etcd_pki_directory}/ca.pem \
-  --cert=${etcd_pki_directory}/kubernetes.pem \
-  --key=${etcd_pki_directory}/kubernetes-key.pem
+  --endpoints=https://192.168.1.110:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key
 ```
 
 Next: [Bootstrapping the Kubernetes Control Plane](08-bootstrapping-kubernetes-controllers.md)
