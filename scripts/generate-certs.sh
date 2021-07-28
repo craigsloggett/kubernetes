@@ -211,5 +211,5 @@ cfssl gencert \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
   -profile=kubernetes \
-  service-account-csr.json | cfssljson -bare service-account
+  service-account-csr.json | cfssljson -bare sa
 

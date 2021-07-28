@@ -54,8 +54,8 @@ sudo cp ca.pem /etc/kubernetes/pki/ca.crt
 sudo cp ca-key.pem /etc/kubernetes/pki/ca.key
 sudo cp kubernetes.pem /etc/kubernetes/pki/apiserver.crt
 sudo cp kubernetes-key.pem /etc/kubernetes/pki/apiserver.key
-sudo cp service-account.pem /etc/kubernetes/pki/sa.crt
-sudo cp service-account-key.pem /etc/kubernetes/pki/sa.key
+sudo cp sa.pem /etc/kubernetes/pki/sa.crt
+sudo cp sa-key.pem /etc/kubernetes/pki/sa.key
 
 # Distribute the encryption configuration file.
 sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
