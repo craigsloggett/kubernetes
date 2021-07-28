@@ -194,8 +194,8 @@ Login as the regular user to confirm.
 
 ```
 # Example entries to update.
-127.0.0.1       k8s-controller-0.localdomain k8s-controller-0
-::1             k8s-controller-0.localdomain k8s-controller-0 ip6-localhost ip6-loopback
+127.0.0.1       controller-0.localdomain controller-0
+::1             controller-0.localdomain controller-0 ip6-localhost ip6-loopback
 ```
 
 #### Add the Cluster IPs
