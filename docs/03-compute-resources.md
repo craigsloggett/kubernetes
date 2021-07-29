@@ -124,6 +124,12 @@ cd wireless-regdb
 git checkout <latest-release-tag>  # e.g. master-2020-11-20
 ```
 
+Copy out the files we need for convenience,
+
+```
+cp regulatory.db* ..
+```
+
 #### Bluetooth Firmware
 
 ```
@@ -162,6 +168,12 @@ apt install locales
 dpkg-reconfigure locales
 ```
 
+### Install `sudo`
+
+```
+apt install sudo
+```
+
 ### Configure a Regular User
 
 #### Add the User
@@ -176,13 +188,6 @@ usermod –a –G sudo nerditup
 ```
 # As the regular user.
 ssh-keygen -t ed25519
-```
-
-#### Install `sudo`
-
-```
-# As root.
-apt install sudo
 ```
 
 Login as the regular user to confirm.
