@@ -34,7 +34,7 @@ export PUBLIC_IP="192.168.1.110"  # Same as CONTROLLER_IP
 # API
 # Configuration Parameters
 
-export CONFIG_DIRECTORY="/etc/kubernetes"
+export KUBE_APISERVER_CONFIG_DIRECTORY="/var/lib/kube-apiserver"
 export PKI_DIRECTORY="/etc/kubernetes/pki"
 export SERVICE_CLUSTER_IP_RANGE="10.96.0.0/12"
 export ADVERTISE_ADDRESS="192.168.1.110"
@@ -43,7 +43,6 @@ export ADVERTISE_ADDRESS="192.168.1.110"
 # CONTROLLER MANAGER
 # Configuration Parameters
 
-#export CONFIG_DIRECTORY="/etc/kubernetes"
 export KUBECONFIG_DIRECTORY="/etc/kubernetes"
 #export PKI_DIRECTORY="/etc/kubernetes/pki"
 #export SERVICE_CLUSTER_IP_RANGE="10.96.0.0/12"
@@ -52,14 +51,14 @@ export KUBECONFIG_DIRECTORY="/etc/kubernetes"
 # SCHEDULER
 # Configuration Parameters
 
-#export CONFIG_DIRECTORY="/etc/kubernetes"
+export KUBE_SCHEDULER_CONFIG_DIRECTORY="/var/lib/kube-scheduler"
 #export KUBECONFIG_DIRECTORY="/etc/kubernetes"
 
 # ---
 # KUBELET
 # Configuration Parameters
 
-#export CONFIG_DIRECTORY="/etc/kubernetes"
+export KUBELET_CONFIG_DIRECTORY="/var/lib/kubelet"
 #export KUBECONFIG_DIRECTORY="/etc/kubernetes"
 #export PKI_DIRECTORY="/etc/kubernetes/pki"
 export DNS_SERVICE_IP="10.96.0.10"
@@ -69,14 +68,15 @@ export POD_INFRA_CONTAINER_IMAGE="k8s.gcr.io/pause:3.4.1"
 # PROXY
 # Configuration Parameters
 
-#export CONFIG_DIRECTORY="/etc/kubernetes"
+export KUBE_PROXY_CONFIG_DIRECTORY="/var/lib/kube-proxy"
 #export KUBECONFIG_DIRECTORY="/etc/kubernetes"
 
 # ---
 # ETCD
 # Configuration Parameters
 
+export ETCD_CONFIG_DIRECTORY="/etc/etcd"
+export ETCD_PKI_DIRECTORY="/etc/kubernetes/pki/etcd"
 #export CONTROLLER_HOSTNAME="controller-0"
 #export CONTROLLER_IP="192.168.1.110"
-export ETCD_PKI_DIRECTORY="/etc/kubernetes/pki/etcd"
 

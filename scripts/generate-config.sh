@@ -40,7 +40,7 @@ cat > kube-apiserver.service <<- EOF
 	  --bind-address=0.0.0.0 \\
 	  --client-ca-file=${PKI_DIRECTORY}/ca.crt \\
 	  --enable-admission-plugins=NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \\
-	  --encryption-provider-config=${CONFIG_DIRECTORY}/encryption-config.yaml \\
+	  --encryption-provider-config=${KUBE_APISERVER_CONFIG_DIRECTORY}/encryption-config.yaml \\
 	  --etcd-cafile=${PKI_DIRECTORY}/etcd/ca.crt \\
 	  --etcd-certfile=${PKI_DIRECTORY}/etcd/server.crt \\
 	  --etcd-keyfile=${PKI_DIRECTORY}/etcd/server.key \\
@@ -74,7 +74,6 @@ EOF
 
 # Kubernetes Controller Manager Configuration Parameters
 
-#config_directory="/etc/kubernetes"       # Duplicated above.
 #kubeconfig_directory="/etc/kubernetes"
 #pki_directory="/etc/kubernetes/pki"      # Duplicated above.
 #service_cluster_ip_range="10.96.0.0/12"  # Duplicated above.
@@ -133,7 +132,7 @@ cat > kube-scheduler.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-scheduler \\
-	  --config=${CONFIG_DIRECTORY}/kube-scheduler.yaml \\
+	  --config=${KUBE_SCHEDULER_CONFIG_DIRECTORY}/config.yaml \\
 	  --v=2
 	Restart=on-failure
 	RestartSec=5
@@ -190,7 +189,7 @@ cat > kubelet.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kubelet \\
-	  --config=${CONFIG_DIRECTORY}/kubelet.yaml \\
+	  --config=${KUBELET_CONFIG_DIRECTORY}/config.yaml \\
 	  --container-runtime=remote \\
 	  --container-runtime-endpoint='/var/run/crio/crio.sock' \\
 	  --kubeconfig=${KUBECONFIG_DIRECTORY}/kubelet.conf \\
@@ -225,7 +224,7 @@ cat > kube-proxy.service <<- EOF
 	
 	[Service]
 	ExecStart=/usr/local/bin/kube-proxy \\
-	  --config=${CONFIG_DIRECTORY}/kube-proxy.yaml
+	  --config=${KUBE_PROXY_CONFIG_DIRECTORY}/config.yaml
 	Restart=on-failure
 	RestartSec=5
 	
