@@ -93,9 +93,8 @@ for node_hostname in "${NODE_HOSTNAMES[@]}"; do
 		  }
 		}
 	EOF
-
 	# Get the variable name containing the IP of the given hostname.
-	node_ip_ref="$( printf '%s\n' "${node_hostname}_IP" | tr '-' '_' )"
+	node_ip_ref="$( printf '%s\n' "${node_hostname}_IP" | tr '-' '_' | tr '[:lower:]' '[:upper:]' )"
 
 	cfssl gencert \
 		-ca=ca.pem \
