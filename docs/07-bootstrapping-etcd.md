@@ -9,21 +9,29 @@ https://github.com/nerditup/kubernetes/blob/main/scripts/generate-etcd-config.sh
 
 Generate the configuration files and then copy them to each controller instance: `controller-0`. 
 
-## Prerequisites
+## Bootstrapping an `etcd` Cluster Member
 
-The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh`.
+### Download and Install the `etcd` Binaries
 
-## Bootstrapping an etcd Cluster Member
-
-### Download and Install the etcd Binaries
+Since `curl` is not available on the base Debian image, grab the necessary files using your laptop,
 
 ```
-wget "https://github.com/etcd-io/etcd/releases/download/v3.4.13/etcd-v3.4.13-linux-arm64.tar.gz"
-tar -xzvf etcd-v3.4.13-linux-arm64.tar.gz
-sudo mv etcd-v3.4.13-linux-arm64/etcd* /usr/local/bin
+curl -O -L "https://github.com/etcd-io/etcd/releases/download/v3.4.13/etcd-v3.4.13-linux-arm64.tar.gz"
+tar -xvzf etcd-v3.4.13-linux-arm64.tar.gz
+cd etcd-v3.4.13-linux-arm64
 ```
 
-### Configure the etcd Server
+Copy them to each controller instance,
+
+```
+for host in controller-0
+  do scp etcd* root@$host:/usr/local/bin
+done
+```
+
+### Configure the `etcd` Server
+
+The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh` as a regular user.
 
 Copy the configuration files to the appropriate directories.
 

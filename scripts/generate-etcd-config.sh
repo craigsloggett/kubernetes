@@ -170,7 +170,7 @@ cat > etcd.service <<- EOF
 	Environment="ETCD_UNSUPPORTED_ARCH=arm64"
 	Type=notify
 	ExecStart=/usr/local/bin/etcd \\
-	  --config-file "${ETCD_CONFIG_DIRECTORY}"/etcd-conf.yaml
+	  --config-file ${ETCD_CONFIG_DIRECTORY}/etcd-conf.yaml
 	Restart=on-failure
 	RestartSec=5
 	

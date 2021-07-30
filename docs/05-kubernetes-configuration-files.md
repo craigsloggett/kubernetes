@@ -1,6 +1,11 @@
 # Generating Kubernetes Configuration Files for Authentication
 
-Generate the kubeconfig files for the `controller manager`, `kubelet`, `kube-proxy`, and `scheduler` clients and the `admin` user.
+Generate the kubeconfig files for the following components:
+ - admin
+ - kube-controller-manager
+ - kube-proxy
+ - kube-scheduler
+ - kubelet
 
 ## Generating Kubernetes Configuration Files
 
@@ -13,16 +18,15 @@ Distribute the `kubelet` and `kube-proxy` kubeconfig files to each node host:
 
 ```
 for host in node-0 node-1 node-2; do
-  scp ${host}.conf proxy.conf nerditup@${host}:~
+  scp ${host}-kubelet.conf kube-proxy.conf nerditup@${host}:~
 done
 ```
 
-Distribute the `admin`, `kube-controller-manager` and `kube-scheduler` kubeconfig files to each 
-controller host:
+Distribute the `admin`, `kube-controller-manager` and `kube-scheduler` kubeconfig files to each controller host:
 
 ```
 for host in controller-0; do
-  scp admin.conf controller-manager.conf scheduler.conf nerditup@${host}:~
+  scp admin.conf kube-controller-manager.conf kube-scheduler.conf nerditup@${host}:~
 done
 ```
 

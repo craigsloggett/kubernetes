@@ -16,38 +16,43 @@ https://github.com/nerditup/kubernetes/blob/main/scripts/generate-config.sh
 
 Generate the configuration files and then copy them to each controller instance: `controller-0`. 
 
-## Prerequisites
+## Download and Install the Kubernetes Control Plane Binaries
 
-The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh`.
-
-### Download and Install the Kubernetes Control Plane Binaries
-
-Download the official Kubernetes release binaries:
+Since `curl` is not available on the base Debian image, grab the necessary files using your laptop,
 
 ```
-wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-apiserver" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-controller-manager" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-scheduler" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
+curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-apiserver"
+curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-controller-manager"
+curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-scheduler"
+curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
 ```
 
-Install the Kubernetes binaries:
+Copy them to each controller instance,
 
 ```
-{
-  chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
-  sudo mv kube-apiserver kube-controller-manager kube-scheduler kubectl /usr/local/bin/
-}
+for host in controller-0
+  do scp kube-apiserver kube-controller-manager kube-scheduler kubectl root@$host:/usr/local/bin
+done
+```
+
+Login to each controller instance and set the executable bit on the binaries,
+
+```
+chmod +x /usr/local/bin/kube*
 ```
 
 ## Configure the API Server
 
-All configuration and certificates will be kept in `/etc/kubernetes`.
+The following commands must be run on each controller instance: `controller-0`. Login to each controller instance using `ssh`.
+
+All certificates will be kept in `/etc/kubernetes/pki` and the configuration will be kept in `/var/lib/kube-apiserver`.
+
+When copying the certificate files, the filenames will be changed to reflect the state of the system as it would be when using `kubeadm`.
 
 ```
 # Setup the directories.
 sudo mkdir -p /etc/kubernetes/pki
+sudo mkdir -p /var/lib/kube-apiserver
 
 # Distribute the certificates.
 sudo cp ca.pem /etc/kubernetes/pki/ca.crt
@@ -58,7 +63,7 @@ sudo cp sa.pem /etc/kubernetes/pki/sa.crt
 sudo cp sa-key.pem /etc/kubernetes/pki/sa.key
 
 # Distribute the encryption configuration file.
-sudo cp encryption-config.yaml /etc/kubernetes/encryption-config.yaml
+sudo cp encryption-config.yaml /var/lib/kube-apiserver/encryption-config.yaml
 
 # Distribute the API Server systemd unit file.
 sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service

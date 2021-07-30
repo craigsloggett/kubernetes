@@ -114,7 +114,7 @@ dmesg
 
 ### Hardware Device Drivers
 
-Since `git` and `curl` is not available on the base Debian image, grab the necessary files using your laptop,
+Since `git` and `curl` are not available on the base Debian image, grab the necessary files using your laptop,
 
 #### Regulatory Database for Wireless Adapters
 
@@ -204,8 +204,10 @@ Login as the regular user to confirm.
 
 #### Add the Cluster IPs
 
+An example list of hosts,
+
 ```
-# Example Kubernetes Cluster
+# Kubernetes Cluster
 192.168.1.110   controller-0
 192.168.1.120   node-0
 192.168.1.121   node-1
