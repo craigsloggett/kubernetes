@@ -196,7 +196,7 @@ cfssl gencert \
 
 # The Service Account Key Pair
 
-cat > service-account-csr.json <<- EOF
+cat > sa-csr.json <<- EOF
 	{
 	  "CN": "service-accounts",
 	  "key": {
@@ -211,5 +211,5 @@ cfssl gencert \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
   -profile=kubernetes \
-  service-account-csr.json | cfssljson -bare sa
+  sa-csr.json | cfssljson -bare sa
 
