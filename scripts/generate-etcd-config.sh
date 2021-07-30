@@ -2,9 +2,11 @@
 
 # Configuration Parameters
 
-controller_hostname="controller-0"
-controller_ip="192.168.1.110"
-etcd_pki_directory="/etc/kubernetes/pki/etcd"
+source env.sh
+
+#controller_hostname="controller-0"
+#controller_ip="192.168.1.110"
+#etcd_pki_directory="/etc/kubernetes/pki/etcd"
 
 # Create a place to store the configuration file.
 [ ! -d "../etcd" ] && mkdir "../etcd"
@@ -18,7 +20,7 @@ cat > etcd-conf.yaml <<- EOF
 	# This is the configuration file for the etcd server.
 	
 	# Human-readable name for this member.
-	name: '${controller_hostname}'
+	name: '${CONTROLLER_HOSTNAME}'
 	
 	# Path to the data directory.
 	data-dir: '/var/lib/etcd'
@@ -40,10 +42,10 @@ cat > etcd-conf.yaml <<- EOF
 	quota-backend-bytes: 0
 	
 	# List of comma separated URLs to listen on for peer traffic.
-	listen-peer-urls: 'https://${controller_ip}:2380'
+	listen-peer-urls: 'https://${CONTROLLER_IP}:2380'
 	
 	# List of comma separated URLs to listen on for client traffic.
-	listen-client-urls: 'https://127.0.0.1:2379,https://${controller_ip}:2379'
+	listen-client-urls: 'https://127.0.0.1:2379,https://${CONTROLLER_IP}:2379'
 	
 	# Maximum number of snapshot files to retain (0 is unlimited).
 	max-snapshots: 5
@@ -56,11 +58,11 @@ cat > etcd-conf.yaml <<- EOF
 	
 	# List of this member's peer URLs to advertise to the rest of the cluster.
 	# The URLs needed to be a comma-separated list.
-	initial-advertise-peer-urls: 'https://${controller_ip}:2380'
+	initial-advertise-peer-urls: 'https://${CONTROLLER_IP}:2380'
 	
 	# List of this member's client URLs to advertise to the public.
 	# The URLs needed to be a comma-separated list.
-	advertise-client-urls: 'https://${controller_ip}:2379'
+	advertise-client-urls: 'https://${CONTROLLER_IP}:2379'
 	
 	# Discovery URL used to bootstrap the cluster.
 	discovery:
@@ -75,7 +77,7 @@ cat > etcd-conf.yaml <<- EOF
 	discovery-srv:
 	
 	# Initial cluster configuration for bootstrapping.
-	initial-cluster: '${controller_hostname}=https://${controller_ip}:2380'
+	initial-cluster: '${CONTROLLER_HOSTNAME}=https://${CONTROLLER_IP}:2380'
 	
 	# Initial cluster token for the etcd cluster during bootstrap.
 	initial-cluster-token: 'etcd-cluster'
@@ -112,32 +114,32 @@ cat > etcd-conf.yaml <<- EOF
 	
 	client-transport-security:
 	  # Path to the client server TLS cert file.
-	  cert-file: '${etcd_pki_directory}/server.crt'
+	  cert-file: '${ETCD_PKI_DIRECTORY}/server.crt'
 	
 	  # Path to the client server TLS key file.
-	  key-file: '${etcd_pki_directory}/server.key'
+	  key-file: '${ETCD_PKI_DIRECTORY}/server.key'
 	
 	  # Enable client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the client server TLS trusted CA cert file.
-	  trusted-ca-file: '${etcd_pki_directory}/ca.crt'
+	  trusted-ca-file: '${ETCD_PKI_DIRECTORY}/ca.crt'
 	
 	  # Client TLS using generated certificates
 	  auto-tls: false
 	
 	peer-transport-security:
 	  # Path to the peer server TLS cert file.
-	  cert-file: '${etcd_pki_directory}/peer.crt'
+	  cert-file: '${ETCD_PKI_DIRECTORY}/peer.crt'
 	
 	  # Path to the peer server TLS key file.
-	  key-file: '${etcd_pki_directory}/peer.key'
+	  key-file: '${ETCD_PKI_DIRECTORY}/peer.key'
 	
 	  # Enable peer client cert authentication.
 	  client-cert-auth: true
 	
 	  # Path to the peer server TLS trusted CA cert file.
-	  trusted-ca-file: '${etcd_pki_directory}/ca.crt'
+	  trusted-ca-file: '${ETCD_PKI_DIRECTORY}/ca.crt'
 	
 	  # Peer TLS using generated certificates.
 	  auto-tls: false

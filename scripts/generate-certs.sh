@@ -2,9 +2,11 @@
 
 # Configuration Parameters
 
-controller_hostname="controller-0"
-controller_ip="192.168.1.110"
-internal_cluster_dns_ip="10.96.0.1"
+source env.sh
+
+#controller_hostname="controller-0"
+#controller_ip="192.168.1.110"
+#internal_cluster_dns_ip="10.96.0.1"
 
 # I've implemented a poor man's key:value store
 # so the variable names align with the hostnames
@@ -12,13 +14,13 @@ internal_cluster_dns_ip="10.96.0.1"
 # in a loop, so the variable names aren't used
 # explicitly -- disabling SC2034 as a result.
 
-node_hostnames=("node-0" "node-1" "node-2")
+#node_hostnames=("node-0" "node-1" "node-2")
 # shellcheck disable=SC2034
-node_0_ip="192.168.1.120"
+#node_0_ip="192.168.1.120"
 # shellcheck disable=SC2034
-node_1_ip="192.168.1.121"
+#node_1_ip="192.168.1.121"
 # shellcheck disable=SC2034
-node_2_ip="192.168.1.122"
+#node_2_ip="192.168.1.122"
 
 # Create a place to store the certificate files.
 [ ! -d "../certs" ] && mkdir "../certs"
@@ -62,14 +64,11 @@ cfssl gencert -initca ca-csr.json | cfssljson -bare ca
 
 cat > admin-csr.json <<- EOF
 	{
-	  "CN": "kubernetes-admin",
+	  "CN": "system:masters:admin",
 	  "key": {
 	    "algo": "rsa",
 	    "size": 2048
-	  },
-	  "names": [{
-	    "O": "system:masters"
-	  }]
+	  }
 	}
 EOF
 
@@ -84,7 +83,7 @@ cfssl gencert \
 
 # The Kubelet Client Certificates
 
-for node_hostname in "${node_hostnames[@]}"; do
+for node_hostname in "${NODE_HOSTNAMES[@]}"; do
 	cat > "${node_hostname}-csr.json" <<- EOF
 		{
 		  "CN": "system:node:${node_hostname}",
@@ -96,7 +95,7 @@ for node_hostname in "${node_hostnames[@]}"; do
 	EOF
 
 	# Get the variable name containing the IP of the given hostname.
-	node_ip_ref="$( printf '%s\n' "${node_hostname}_ip" | tr '-' '_' )"
+	node_ip_ref="$( printf '%s\n' "${node_hostname}_IP" | tr '-' '_' )"
 
 	cfssl gencert \
 		-ca=ca.pem \
@@ -153,7 +152,6 @@ cfssl gencert \
 
 # The Scheduler Client Certificate 
 
-
 cat > kube-scheduler-csr.json <<- EOF
 	{
 	  "CN": "system:kube-scheduler",
@@ -175,7 +173,7 @@ cfssl gencert \
 
 # The Kubernetes API Server Certificate
 
-DEFAULT_KUBERNETES_HOSTNAMES=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.svc.cluster.local
+default_kubernetes_hostnames=kubernetes,kubernetes.default,kubernetes.default.svc,kubernetes.svc.cluster.local
 
 cat > kubernetes-csr.json <<- EOF
 	{
@@ -191,7 +189,7 @@ cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
-  -hostname="${controller_hostname}","${DEFAULT_KUBERNETES_HOSTNAMES}","${internal_cluster_dns_ip}","${controller_ip}",127.0.0.1 \
+  -hostname="${CONTROLLER_HOSTNAME}","${default_kubernetes_hostnames}","${INTERNAL_CLUSTER_DNS_IP}","${CONTROLLER_IP}",127.0.0.1 \
   -profile=kubernetes \
   kubernetes-csr.json | cfssljson -bare kubernetes
 
