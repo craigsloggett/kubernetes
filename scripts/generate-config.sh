@@ -2,23 +2,15 @@
 
 # Configuration Parameters
 
-source env.sh
+source "$(dirname -- "$0")/env.sh"
 
-# Verify the certificates have been created.
-[ -d "../certs" ] || exit
+conf_dir="$(dirname -- "$0")/tmp/config"
 
 # Create a place to store the configuration files.
-[ ! -d "../config" ] && mkdir "../config"
-cd "../config" || exit
+[ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
+cd "$conf_dir" || exit
 
 # ---
-
-# Kubernetes API Server Configuration Parameters
-
-#config_directory="/etc/kubernetes"
-#pki_directory="/etc/kubernetes/pki"
-#service_cluster_ip_range="10.96.0.0/12"
-#advertise_address="192.168.1.110"
 
 # Kubernetes API Server
 
@@ -72,12 +64,6 @@ EOF
 
 # ---
 
-# Kubernetes Controller Manager Configuration Parameters
-
-#kubeconfig_directory="/etc/kubernetes"
-#pki_directory="/etc/kubernetes/pki"      # Duplicated above.
-#service_cluster_ip_range="10.96.0.0/12"  # Duplicated above.
-
 # Kubernetes Controller Manager
 
 cat > kube-controller-manager.service <<- EOF
@@ -109,11 +95,6 @@ EOF
 
 # ---
 
-# Kubernetes Scheduler Configuration Parameters
-
-#config_directory="/etc/kubernetes"      # Duplicated above.
-#kubeconfig_directory="/etc/kubernetes"  # Duplicated above.
-
 # Kubernetes Scheduler
 
 cat > kube-scheduler.yaml <<- EOF
@@ -144,12 +125,6 @@ EOF
 # ---
 
 # Kubernetes Kubelet
-
-#config_directory="/etc/kubernetes"      # Duplicated above.
-#kubeconfig_directory="/etc/kubernetes"  # Duplicated above.
-#pki_directory="/etc/kubernetes/pki"     # Duplicated above.
-#dns_service_ip="10.96.0.10"
-#pod_infra_container_image="k8s.gcr.io/pause:3.4.1"
 
 for node_hostname in "${NODE_HOSTNAMES[@]}"; do
 	cat > "${node_hostname}-kubelet.yaml" <<- EOF
@@ -205,9 +180,6 @@ EOF
 # ---
 
 # Kubernetes Proxy
-
-#config_directory="/etc/kubernetes"      # Duplicated above.
-#kubeconfig_directory="/etc/kubernetes"  # Duplicated above.
 
 cat > kube-proxy.yaml <<- EOF
 	kind: KubeProxyConfiguration

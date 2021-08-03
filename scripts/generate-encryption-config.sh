@@ -2,11 +2,12 @@
 
 # Configuration Parameters
 
+resources_dir="$(dirname -- "$0")/tmp/resources"
 encryption_key="$(head -c 32 /dev/urandom | base64)"
 
-# Create a place to store the configuration file.
-[ ! -d "../resources" ] && mkdir "../resources"
-cd "../resources" || exit
+# Create a place to store the encryption resource file.
+[ ! -d "$resources_dir" ] && mkdir -p "$resources_dir"
+cd "$resources_dir" || exit
 
 # ---
 

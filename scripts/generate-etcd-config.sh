@@ -2,15 +2,13 @@
 
 # Configuration Parameters
 
-source env.sh
+source "$(dirname -- "$0")/env.sh"
 
-#controller_hostname="controller-0"
-#controller_ip="192.168.1.110"
-#etcd_pki_directory="/etc/kubernetes/pki/etcd"
+conf_dir="$(dirname -- "$0")/tmp/etcd"
 
-# Create a place to store the configuration file.
-[ ! -d "../etcd" ] && mkdir "../etcd"
-cd "../etcd" || exit
+# Create a place to store the configuration files.
+[ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
+cd "$conf_dir" || exit
 
 # ---
 
@@ -158,6 +156,8 @@ cat > etcd-conf.yaml <<- EOF
 	auto-compaction-mode: periodic
 	auto-compaction-retention: '1'
 EOF
+
+# ---
 
 # systemd Service File
 

@@ -2,32 +2,34 @@
 
 # Configuration Parameters
 
-source env.sh
-
-#node_hostnames=("node-0" "node-1" "node-2")
-#cluster_name="kubernetes"
-#public_ip="192.168.1.110"
+source "$(dirname -- "$0")/env.sh"
 
 # Verify the certificates have been created.
-[ -d "../certs" ] || exit
+
+conf_dir="$(dirname -- "$0")/tmp/kubeconfig"
+cert_dir="$(dirname -- "$0")/tmp/certs"
+
+# Get the absolute value of the certificate directory.
+[ -d "$cert_dir" ] || exit
+cert_dir="$(cd "$cert_dir" || exit; pwd)"
 
 # Create a place to store the configuration files.
-[ ! -d "../kubeconfig" ] && mkdir "../kubeconfig"
-cd "../kubeconfig" || exit
+[ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
+cd "$conf_dir" || exit
 
 # ---
 
 # The kube-controller-manager Kubernetes Configuration File
 
 kubectl config set-cluster "${CLUSTER_NAME}" \
-  --certificate-authority=../certs/ca.pem \
+  --certificate-authority="${cert_dir}/ca.pem" \
   --embed-certs=true \
   --server="https://${PUBLIC_IP}:6443" \
   --kubeconfig=kube-controller-manager.conf
 
 kubectl config set-credentials system:kube-controller-manager \
-  --client-certificate=../certs/kube-controller-manager.pem \
-  --client-key=../certs/kube-controller-manager-key.pem \
+  --client-certificate="${cert_dir}/kube-controller-manager.pem" \
+  --client-key="${cert_dir}/kube-controller-manager-key.pem" \
   --embed-certs=true \
   --kubeconfig=kube-controller-manager.conf
 
@@ -43,14 +45,14 @@ kubectl config use-context "system:kube-controller-manager@${CLUSTER_NAME}" --ku
 # The kube-scheduler Kubernetes Configuration File
 
 kubectl config set-cluster "${CLUSTER_NAME}" \
-  --certificate-authority=../certs/ca.pem \
+  --certificate-authority="${cert_dir}/ca.pem" \
   --embed-certs=true \
   --server="https://${PUBLIC_IP}:6443" \
   --kubeconfig=kube-scheduler.conf
 
 kubectl config set-credentials system:kube-scheduler \
-  --client-certificate=../certs/kube-scheduler.pem \
-  --client-key=../certs/kube-scheduler-key.pem \
+  --client-certificate="${cert_dir}/kube-scheduler.pem" \
+  --client-key="${cert_dir}/kube-scheduler-key.pem" \
   --embed-certs=true \
   --kubeconfig=kube-scheduler.conf
 
@@ -67,14 +69,14 @@ kubectl config use-context "system:kube-scheduler@${CLUSTER_NAME}" --kubeconfig=
 
 for node_hostname in "${NODE_HOSTNAMES[@]}"; do
   kubectl config set-cluster "${CLUSTER_NAME}" \
-    --certificate-authority=../certs/ca.pem \
+    --certificate-authority="${cert_dir}/ca.pem" \
     --embed-certs=true \
     --server="https://${PUBLIC_IP}:6443" \
     --kubeconfig="${node_hostname}-kubelet.conf"
 
   kubectl config set-credentials "system:node:${node_hostname}" \
-    --client-certificate="../certs/${node_hostname}.pem" \
-    --client-key="../certs/${node_hostname}-key.pem" \
+    --client-certificate="${cert_dir}/${node_hostname}.pem" \
+    --client-key="${cert_dir}/${node_hostname}-key.pem" \
     --embed-certs=true \
     --kubeconfig="${node_hostname}-kubelet.conf"
 
@@ -91,14 +93,14 @@ done
 # The kube-proxy Kubernetes Configuration File
 
 kubectl config set-cluster "${CLUSTER_NAME}" \
-  --certificate-authority=../certs/ca.pem \
+  --certificate-authority="${cert_dir}/ca.pem" \
   --embed-certs=true \
   --server="https://${PUBLIC_IP}:6443" \
   --kubeconfig=kube-proxy.conf
 
 kubectl config set-credentials system:kube-proxy \
-  --client-certificate=../certs/kube-proxy.pem \
-  --client-key=../certs/kube-proxy-key.pem \
+  --client-certificate="${cert_dir}/kube-proxy.pem" \
+  --client-key="${cert_dir}/kube-proxy-key.pem" \
   --embed-certs=true \
   --kubeconfig=kube-proxy.conf
 
@@ -114,14 +116,14 @@ kubectl config use-context "system:kube-proxy@${CLUSTER_NAME}" --kubeconfig=kube
 # The admin Kubernetes Configuration File
 
 kubectl config set-cluster "${CLUSTER_NAME}" \
-  --certificate-authority=../certs/ca.pem \
+  --certificate-authority="${cert_dir}/ca.pem" \
   --embed-certs=true \
   --server="https://${PUBLIC_IP}:6443" \
   --kubeconfig=admin.conf
 
 kubectl config set-credentials admin \
-  --client-certificate=../certs/admin.pem \
-  --client-key=../certs/admin-key.pem \
+  --client-certificate="${cert_dir}/admin.pem" \
+  --client-key="${cert_dir}/admin-key.pem" \
   --embed-certs=true \
   --kubeconfig=admin.conf
 

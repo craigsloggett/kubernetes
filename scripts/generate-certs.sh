@@ -2,29 +2,13 @@
 
 # Configuration Parameters
 
-source env.sh
+source "$(dirname -- "$0")/env.sh"
 
-#controller_hostname="controller-0"
-#controller_ip="192.168.1.110"
-#internal_cluster_dns_ip="10.96.0.1"
-
-# I've implemented a poor man's key:value store
-# so the variable names align with the hostnames
-# set below. The keys are determined dynamically
-# in a loop, so the variable names aren't used
-# explicitly -- disabling SC2034 as a result.
-
-#node_hostnames=("node-0" "node-1" "node-2")
-# shellcheck disable=SC2034
-#node_0_ip="192.168.1.120"
-# shellcheck disable=SC2034
-#node_1_ip="192.168.1.121"
-# shellcheck disable=SC2034
-#node_2_ip="192.168.1.122"
+cert_dir="$(dirname -- "$0")/tmp/certs"
 
 # Create a place to store the certificate files.
-[ ! -d "../certs" ] && mkdir "../certs"
-cd "../certs" || exit
+[ ! -d "$cert_dir" ] && mkdir -p "$cert_dir"
+cd "$cert_dir" || exit
 
 # ---
 
