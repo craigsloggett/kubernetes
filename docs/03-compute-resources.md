@@ -36,7 +36,9 @@ The IP address allocated by an ISP to your local network would be used as the pu
 
 ## Compute Instances
 
-The compute instances in this lab will be provisioned using [Debian](https://www.debian.org/) 11 Testing (Bullseye), which has support for `cgroups v2` with `systemd version 244` or later. Older `systemd` versions do not support delegation of the `cpuset` controller which is important when imposing resource limitations on rootless containers.
+The compute instances in this lab will be provisioned using [Debian 11 (Bullseye) Images](https://raspi.debian.net/tested-images/), which have been built for the Raspberry Pi. 
+
+Note: Debian 11 has support for `cgroups v2` since it supports `systemd version 244` or later. Older `systemd` versions do not support delegation of the `cpuset` controller which is important when imposing resource limitations on rootless containers.
 
 > This tutorial does not leverage rootless containers.
 
