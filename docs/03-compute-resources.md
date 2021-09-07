@@ -43,7 +43,7 @@ The compute instances in this lab will be provisioned using [Debian](https://www
 ### Download a Debian Raspberry Pi Image
 
 ```
-curl -o raspi_4_bullseye.img.xz -L "https://raspi.debian.net/verified/20210718_raspi_4_bullseye.img.xz"
+curl -O -L "https://raspi.debian.net/verified/20210823_raspi_4_bullseye.img.xz"
 ```
 
 ### Flash the SD Card
@@ -51,7 +51,7 @@ curl -o raspi_4_bullseye.img.xz -L "https://raspi.debian.net/verified/20210718_r
 Once the SD card is plugged into the laptop, confirm the disk number assigned to this device (e.g. `/dev/disk2`).
 
 ```
-xzcat raspi_4_bullseye.img.xz | sudo dd of=/dev/disk2 bs=64k
+xzcat 20210823_raspi_4_bullseye.img.xz | sudo dd of=/dev/disk2 bs=64k
 ```
 
 ### Update Image Configuration
