@@ -176,6 +176,12 @@ dpkg-reconfigure locales
 apt install sudo
 ```
 
+### Set `vi` as the Default Editor
+
+```
+update-alternatives --config editor
+```
+
 ### Configure a Regular User
 
 #### Add the User
