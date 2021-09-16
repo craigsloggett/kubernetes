@@ -20,7 +20,11 @@ The following commands must be run on each worker node instance: `node-0`, `node
 
 ## Install the Container Runtime
 
-NOTE: This might move to `03-compute-resources.md` if the Networking Plugin requires running a container on the controller node.
+**NOTE:** This might move to `03-compute-resources.md` if the Networking Plugin requires running a container on the controller node.
+
+> If you are running Kubernetes Apiserver outside of your cluster for some reason (like keeping master nodes behind a firewall), make sure that you run Cilium on master nodes too.
+
+Looks like we need to add Kubelet to the controller nodes too!
 
 ### Enable Overlay Networking in the Kernel
 
