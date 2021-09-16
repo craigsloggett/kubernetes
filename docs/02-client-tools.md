@@ -12,8 +12,11 @@ Download and install `cfssl` and `cfssljson`:
 ### macOS
 
 ```
-curl -o cfssl -L "https://github.com/cloudflare/cfssl/releases/download/v1.5.0/cfssl_1.5.0_darwin_amd64"
-curl -o cfssljson -L "https://github.com/cloudflare/cfssl/releases/download/v1.5.0/cfssljson_1.5.0_darwin_amd64"
+(
+  export CFSSL_VERSION="1.5.0"
+  curl -o cfssl -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssl_${CFSSL_VERSION}_darwin_amd64"
+  curl -o cfssljson -L "https://github.com/cloudflare/cfssl/releases/download/v${CFSSL_VERSION}/cfssljson_${CFSSL_VERSION}_darwin_amd64"
+)
 ```
 
 ```
@@ -21,7 +24,7 @@ chmod +x cfssl cfssljson
 ```
 
 ```
-sudo mv cfssl cfssljson /usr/local/bin/
+mv cfssl cfssljson ~/.local/bin
 ```
 
 ### Verification
@@ -57,7 +60,10 @@ The `kubectl` command line utility is used to interact with the Kubernetes API S
 ### macOS
 
 ```
-curl -o kubectl -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/darwin/amd64/kubectl"
+(
+  export KUBE_VERSION="1.22.2"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/darwin/amd64/kubectl"
+)
 ```
 
 ```
@@ -65,7 +71,7 @@ chmod +x kubectl
 ```
 
 ```
-sudo mv kubectl /usr/local/bin/
+mv kubectl ~/.local/bin
 ```
 
 ### Verification
