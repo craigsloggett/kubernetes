@@ -23,7 +23,7 @@ Distribute the `kube-apiserver`, `kube-scheduler` and `kube-controller-manager` 
 ```
 for host in controller-0; do
   ssh nerditup@${host} 'mkdir -p ~/kubernetes/control-plane'
-  scp kube-apiserver.service kube-controller-manager.service kube-scheduler.service kube-scheduler.yaml nerditup@${host}:~/kubernetes/control-plane
+  scp kube-apiserver.service kube-controller-manager.service kube-scheduler.service scheduler.yaml nerditup@${host}:~/kubernetes/control-plane
 done
 ```
 
