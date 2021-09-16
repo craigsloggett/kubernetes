@@ -80,7 +80,7 @@ generate_config() (
 		  --cluster-name=kubernetes \\
 		  --cluster-signing-cert-file=${PKI_DIRECTORY}/ca.crt \\
 		  --cluster-signing-key-file=${PKI_DIRECTORY}/ca.key \\
-		  --kubeconfig=${KUBECONFIG_DIRECTORY}/kube-controller-manager.conf \\
+		  --kubeconfig=${KUBECONFIG_DIRECTORY}/controller-manager.conf \\
 		  --leader-elect=true \\
 		  --port=0 \\
 		  --root-ca-file=${PKI_DIRECTORY}/ca.crt \\
@@ -99,11 +99,11 @@ generate_config() (
 	
 	# Kubernetes Scheduler
 	
-	cat > kube-scheduler.yaml <<- EOF
+	cat > scheduler.yaml <<- EOF
 		apiVersion: kubescheduler.config.k8s.io/v1beta1
 		kind: KubeSchedulerConfiguration
 		clientConnection:
-		  kubeconfig: "${KUBECONFIG_DIRECTORY}/kube-scheduler.conf"
+		  kubeconfig: "${KUBECONFIG_DIRECTORY}/scheduler.conf"
 		leaderElection:
 		  leaderElect: true
 	EOF
@@ -183,11 +183,11 @@ generate_config() (
 	
 	# Kubernetes Proxy
 	
-	cat > kube-proxy.yaml <<- EOF
+	cat > proxy.yaml <<- EOF
 		kind: KubeProxyConfiguration
 		apiVersion: kubeproxy.config.k8s.io/v1alpha1
 		clientConnection:
-		  kubeconfig: "${KUBECONFIG_DIRECTORY}/kube-proxy.conf"
+		  kubeconfig: "${KUBECONFIG_DIRECTORY}/proxy.conf"
 		mode: "ipvs"
 	EOF
 	
