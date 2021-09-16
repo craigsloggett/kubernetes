@@ -53,6 +53,23 @@ https://github.com/nerditup/kubernetes/blob/main/scripts/generate-certs.sh
 openssl x509 -in <certificate_name.pem> -text -noout
 ```
 
+For convenience, the following will iterate over all certificates that were generated:
+
+```
+for file in *.pem;
+do
+  case "${file}" in
+    *key*)
+      : # Do nothing.
+    ;;
+
+    *)
+      openssl x509 -in "${file}" -text -noout
+    ;;
+  esac
+done
+```
+
 ## Distribute the TLS Certificates
 
 Distribute the appropriate certificates and private keys to each controller host:
