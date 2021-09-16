@@ -71,10 +71,14 @@ sudo cp kubernetes.pem /etc/kubernetes/pki/apiserver.crt
 sudo cp kubernetes-key.pem /etc/kubernetes/pki/apiserver.key
 sudo cp sa.pem /etc/kubernetes/pki/sa.crt
 sudo cp sa-key.pem /etc/kubernetes/pki/sa.key
+```
 
+```
 # Distribute the encryption configuration file.
 sudo cp encryption-config.yaml /var/lib/kube-apiserver/encryption-config.yaml
+```
 
+```
 # Distribute the API Server systemd unit file.
 sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service
 ```
