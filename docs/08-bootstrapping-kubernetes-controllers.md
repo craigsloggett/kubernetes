@@ -90,7 +90,9 @@ All configuration and certificates will be kept in `/etc/kubernetes`.
 ```
 # Distribute the Controller Manager configuration file.
 sudo cp controller-manager.conf /etc/kubernetes/controller-manager.conf
+```
 
+```
 # Distribute the Controller Manager systemd unit file.
 sudo cp kube-controller-manager.service /etc/systemd/system/kube-controller-manager.service
 ```

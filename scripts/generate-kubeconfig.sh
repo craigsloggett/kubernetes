@@ -22,20 +22,20 @@ generate_kubeconfig() (
 	  --certificate-authority="${CERT_DIR}/ca.pem" \
 	  --embed-certs=true \
 	  --server="https://${PUBLIC_IP}:6443" \
-	  --kubeconfig=kube-controller-manager.conf
+	  --kubeconfig=controller-manager.conf
 	
 	kubectl config set-credentials system:kube-controller-manager \
 	  --client-certificate="${CERT_DIR}/kube-controller-manager.pem" \
 	  --client-key="${CERT_DIR}/kube-controller-manager-key.pem" \
 	  --embed-certs=true \
-	  --kubeconfig=kube-controller-manager.conf
+	  --kubeconfig=controller-manager.conf
 	
 	kubectl config set-context "system:kube-controller-manager@${CLUSTER_NAME}" \
 	  --cluster="${CLUSTER_NAME}" \
 	  --user=system:kube-controller-manager \
-	  --kubeconfig=kube-controller-manager.conf
+	  --kubeconfig=controller-manager.conf
 	
-	kubectl config use-context "system:kube-controller-manager@${CLUSTER_NAME}" --kubeconfig=kube-controller-manager.conf
+	kubectl config use-context "system:kube-controller-manager@${CLUSTER_NAME}" --kubeconfig=controller-manager.conf
 	
 	# ---
 	
@@ -45,20 +45,20 @@ generate_kubeconfig() (
 	  --certificate-authority="${CERT_DIR}/ca.pem" \
 	  --embed-certs=true \
 	  --server="https://${PUBLIC_IP}:6443" \
-	  --kubeconfig=kube-scheduler.conf
+	  --kubeconfig=scheduler.conf
 	
 	kubectl config set-credentials system:kube-scheduler \
 	  --client-certificate="${CERT_DIR}/kube-scheduler.pem" \
 	  --client-key="${CERT_DIR}/kube-scheduler-key.pem" \
 	  --embed-certs=true \
-	  --kubeconfig=kube-scheduler.conf
+	  --kubeconfig=scheduler.conf
 	
 	kubectl config set-context "system:kube-scheduler@${CLUSTER_NAME}" \
 	  --cluster="${CLUSTER_NAME}" \
 	  --user=system:kube-scheduler \
-	  --kubeconfig=kube-scheduler.conf
+	  --kubeconfig=scheduler.conf
 	
-	kubectl config use-context "system:kube-scheduler@${CLUSTER_NAME}" --kubeconfig=kube-scheduler.conf
+	kubectl config use-context "system:kube-scheduler@${CLUSTER_NAME}" --kubeconfig=scheduler.conf
 	
 	# ---
 	
@@ -93,20 +93,20 @@ generate_kubeconfig() (
 	  --certificate-authority="${CERT_DIR}/ca.pem" \
 	  --embed-certs=true \
 	  --server="https://${PUBLIC_IP}:6443" \
-	  --kubeconfig=kube-proxy.conf
+	  --kubeconfig=proxy.conf
 	
 	kubectl config set-credentials system:kube-proxy \
 	  --client-certificate="${CERT_DIR}/kube-proxy.pem" \
 	  --client-key="${CERT_DIR}/kube-proxy-key.pem" \
 	  --embed-certs=true \
-	  --kubeconfig=kube-proxy.conf
+	  --kubeconfig=proxy.conf
 	
 	kubectl config set-context "system:kube-proxy@${CLUSTER_NAME}" \
 	  --cluster="${CLUSTER_NAME}" \
 	  --user=system:kube-proxy \
-	  --kubeconfig=kube-proxy.conf
+	  --kubeconfig=proxy.conf
 	
-	kubectl config use-context "system:kube-proxy@${CLUSTER_NAME}" --kubeconfig=kube-proxy.conf
+	kubectl config use-context "system:kube-proxy@${CLUSTER_NAME}" --kubeconfig=proxy.conf
 	
 	# ---
 	
