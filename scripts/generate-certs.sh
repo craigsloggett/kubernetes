@@ -42,7 +42,7 @@ generate_certs() (
 		}
 	EOF
 	
-	cfssl gencert -initca ca-csr.json | cfssljson -bare ca
+	cfssl gencert -loglevel=5 -initca ca-csr.json | cfssljson -bare ca
 	
 	# ---
 	
@@ -63,6 +63,7 @@ generate_certs() (
 		-ca-key=ca-key.pem \
 		-config=ca-config.json \
 		-profile=kubernetes \
+		-loglevel=5 \
 		admin-csr.json | cfssljson -bare admin
 	
 	# ---
@@ -88,6 +89,7 @@ generate_certs() (
 			-config=ca-config.json \
 			-hostname="${node_hostname},${!node_ip_ref}" \
 			-profile=kubernetes \
+			-loglevel=5 \
 			"${node_hostname}-csr.json" | cfssljson -bare "${node_hostname}"
 	done
 	
@@ -110,6 +112,7 @@ generate_certs() (
 	  -ca-key=ca-key.pem \
 	  -config=ca-config.json \
 	  -profile=kubernetes \
+	  -loglevel=5 \
 	  kube-controller-manager-csr.json | cfssljson -bare kube-controller-manager
 	
 	# ---
@@ -131,6 +134,7 @@ generate_certs() (
 	  -ca-key=ca-key.pem \
 	  -config=ca-config.json \
 	  -profile=kubernetes \
+	  -loglevel=5 \
 	  kube-proxy-csr.json | cfssljson -bare kube-proxy
 	
 	# ---
@@ -152,6 +156,7 @@ generate_certs() (
 	  -ca-key=ca-key.pem \
 	  -config=ca-config.json \
 	  -profile=kubernetes \
+	  -loglevel=5 \
 	  kube-scheduler-csr.json | cfssljson -bare kube-scheduler
 	
 	# ---
@@ -176,6 +181,7 @@ generate_certs() (
 	  -config=ca-config.json \
 	  -hostname="${CONTROLLER_HOSTNAME}","${default_kubernetes_hostnames}","${INTERNAL_CLUSTER_DNS_IP}","${CONTROLLER_IP}",127.0.0.1 \
 	  -profile=kubernetes \
+	  -loglevel=5 \
 	  kubernetes-csr.json | cfssljson -bare kubernetes
 	
 	# ---
@@ -197,6 +203,7 @@ generate_certs() (
 	  -ca-key=ca-key.pem \
 	  -config=ca-config.json \
 	  -profile=kubernetes \
+	  -loglevel=5 \
 	  sa-csr.json | cfssljson -bare sa
 )
 
