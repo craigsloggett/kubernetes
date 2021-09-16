@@ -54,11 +54,11 @@ Copy the configuration files to the appropriate directories.
 ```
 # etcd Configuration File
 sudo mkdir -p /etc/etcd/
-sudo mv etcd-conf.yaml /etc/etcd/
+sudo cp etcd-conf.yaml /etc/etcd/
 sudo chown -R root:root /etc/etcd/
 
 # systemd Service File
-sudo mv etcd.service /etc/systemd/system/
+sudo cp etcd.service /etc/systemd/system/
 sudo chown root:root /etc/systemd/system/etcd.service
 ```
 
