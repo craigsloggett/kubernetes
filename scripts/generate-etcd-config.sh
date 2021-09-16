@@ -6,11 +6,11 @@ source "$(dirname -- "$0")/env.sh"
 
 # Run this in a subshell to avoid having to deal with changing directories.
 generate_etcd_config() (
-	local	conf_dir="$(dirname -- "$0")/.output/etcd"
+	local	etcd_dir="$(dirname -- "$0")/.output/etcd"
 	
 	# Create a place to store the configuration files.
-	[ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
-	cd "$conf_dir" || exit
+	[ ! -d "$etcd_dir" ] && mkdir -p "$etcd_dir"
+	cd "$etcd_dir" || exit
 	
 	# ---
 	
@@ -181,3 +181,4 @@ generate_etcd_config() (
 	EOF
 )
 
+generate_etcd_config
