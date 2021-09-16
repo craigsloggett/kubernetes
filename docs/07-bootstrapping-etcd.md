@@ -2,7 +2,7 @@
 
 Kubernetes components are stateless and store cluster state in [etcd](https://github.com/etcd-io/etcd).
 
-## Genertaing `etcd` Configuration
+## Generating `etcd` Configuration
 
 All configuration is generated using the script found here: 
 https://github.com/nerditup/kubernetes/blob/main/scripts/generate-etcd-config.sh
