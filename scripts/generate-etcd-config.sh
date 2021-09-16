@@ -150,7 +150,7 @@ generate_etcd_config() (
 		logger: 'zap'
 		
 		# Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd.
-		log-outputs: [stderr]
+		# log-outputs: [stderr]
 		
 		# Force to create a new one member cluster.
 		force-new-cluster: false

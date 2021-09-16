@@ -39,7 +39,7 @@ Copy them to each controller instance,
 
 ```
 for host in controller-0; do
-  scp etcd etcdctl root@$host:/usr/local/bin
+  scp etcd etcdctl etcdutl root@$host:/usr/local/bin
 done
 ```
 
