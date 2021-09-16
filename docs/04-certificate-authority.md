@@ -64,6 +64,7 @@ do
     ;;
 
     *)
+      printf '---\n%s\n---\n' "${file}"
       openssl x509 -in "${file}" -text -noout
     ;;
   esac
