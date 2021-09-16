@@ -28,7 +28,7 @@ Since `curl` is not available on the base Debian image, grab the necessary files
 
 ```
 (
-  export ETCD_VERSION="3.4.13"
+  export ETCD_VERSION="3.5.0"
   curl -O -L "https://github.com/etcd-io/etcd/releases/download/v${ETCD_VERSION}/etcd-v${ETCD_VERSION}-linux-arm64.tar.gz"
   tar -xvzf "etcd-v${ETCD_VERSION}-linux-arm64.tar.gz"
   cd "etcd-v${ETCD_VERSION}-linux-arm64"

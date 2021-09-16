@@ -22,7 +22,7 @@ Since `curl` is not available on the base Debian image, grab the necessary files
 
 ```
 (
-  export KUBE_VERSION="1.21.1"
+  export KUBE_VERSION="1.22.2"
   curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-apiserver"
   curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-controller-manager"
   curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-scheduler"
