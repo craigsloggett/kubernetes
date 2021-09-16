@@ -149,7 +149,7 @@ kubectl cluster-info --kubeconfig admin.conf
 This only needs to be run once on a single controller node (in this case there is only `controller-0`).
 
 ```
-cat <<- EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+cat <<- EOF | kubectl apply --kubeconfig admin.conf -f -
 	apiVersion: rbac.authorization.k8s.io/v1
 	kind: ClusterRole
 	metadata:
@@ -173,7 +173,7 @@ EOF
 ```
 
 ```
-cat <<- EOF | kubectl apply --kubeconfig admin.kubeconfig -f -
+cat <<- EOF | kubectl apply --kubeconfig admin.conf -f -
 	apiVersion: rbac.authorization.k8s.io/v1
 	kind: ClusterRoleBinding
 	metadata:
