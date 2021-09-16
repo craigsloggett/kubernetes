@@ -77,8 +77,9 @@ Distribute the appropriate certificates and private keys to each controller host
 
 ```
 for host in controller-0; do
+  ssh nerditup@{host} 'mkdir -p ~/kubernetes/certs'
   scp ca.pem ca-key.pem kubernetes-key.pem kubernetes.pem \
-    sa-key.pem sa.pem nerditup@${host}:~
+    sa-key.pem sa.pem nerditup@${host}:~/kubernetes/certs
 done
 ```
 
@@ -86,10 +87,11 @@ Distribute the appropriate certificates and private keys to each node host:
 
 ```
 for host in node-0 node-1 node-2; do
-  scp ca.pem "${host}"-key.pem "${host}".pem nerditup@${host}:~
+  ssh nerditup@{host} 'mkdir -p ~/kubernetes/certs'
+  scp ca.pem "${host}"-key.pem "${host}".pem nerditup@${host}:~/kubernetes/certs
 done
 ```
 
-Note: For the certificates that were created but not distributed, they are used to generate the kubeconfig files with embedded certificates.
+*Note:* For the certificates that were created but not distributed, they are used to generate the kubeconfig files with embedded certificates.
 
 Next: [Generating Kubernetes Configuration Files for Authentication](05-kubernetes-configuration-files.md)
