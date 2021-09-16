@@ -200,3 +200,4 @@ generate_certs() (
 	  sa-csr.json | cfssljson -bare sa
 )
 
+generate_certs
