@@ -4,8 +4,8 @@
 # LOCAL
 # Configuration Parameters
 
-export CERT_OUTPUT_DIR="$(dirname -- "$0")/.output/certs"
-export KUBECONFIG_OUTPUT_DIR="$(dirname -- "$0")/.output/kubeconfig"
+export CERT_DIR="$(dirname -- "$0")/.output/certs"
+export KUBECONFIG_DIR="$(dirname -- "$0")/.output/kubeconfig"
 
 # ---
 # CERTS

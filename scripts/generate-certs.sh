@@ -7,8 +7,8 @@ source "$(dirname -- "$0")/env.sh"
 # Run this in a subshell to avoid having to deal with changing directories.
 generate_certs() (
 	# Create a place to store the certificate files.
-	[ ! -d "$CERT_OUTPUT_DIR" ] && mkdir -p "$CERT_OUTPUT_DIR"
-	cd "$CERT_OUTPUT_DIR" || exit
+	[ ! -d "$CERT_DIR" ] && mkdir -p "$CERT_DIR"
+	cd "$CERT_DIR" || exit
 	
 	# ---
 	
