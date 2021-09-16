@@ -63,7 +63,9 @@ When copying the certificate files, the filenames will be changed to reflect the
 # Setup the directories.
 sudo mkdir -p /etc/kubernetes/pki
 sudo mkdir -p /var/lib/kube-apiserver
+```
 
+```
 # Distribute the certificates.
 sudo cp ca.pem /etc/kubernetes/pki/ca.crt
 sudo cp ca-key.pem /etc/kubernetes/pki/ca.key
@@ -101,8 +103,10 @@ sudo cp kube-controller-manager.service /etc/systemd/system/kube-controller-mana
 
 All configuration and certificates will be kept in `/etc/kubernetes`.
 
+```
 # Setup the directories.
 sudo mkdir -p /var/lib/kube-scheduler
+```
 
 ```
 # Distribute the Scheduler kubeconfig file.
