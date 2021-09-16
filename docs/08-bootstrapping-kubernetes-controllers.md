@@ -88,7 +88,7 @@ sudo cp kube-apiserver.service /etc/systemd/system/kube-apiserver.service
 All configuration and certificates will be kept in `/etc/kubernetes`.
 
 ```
-# Distribute the Controller Manager configuration file.
+# Distribute the Controller Manager kubeconfig file.
 sudo cp controller-manager.conf /etc/kubernetes/controller-manager.conf
 ```
 
@@ -102,12 +102,18 @@ sudo cp kube-controller-manager.service /etc/systemd/system/kube-controller-mana
 All configuration and certificates will be kept in `/etc/kubernetes`.
 
 ```
-# Distribute the Scheduler configuration file.
+# Distribute the Scheduler kubeconfig file.
 sudo cp scheduler.conf /etc/kubernetes/scheduler.conf
-sudo cp scheduler.yaml /etc/kubernetes/scheduler.yaml
+```
 
+```
 # Distribute the Scheduler systemd unit file.
 sudo cp kube-scheduler.service /etc/systemd/system/kube-scheduler.service
+```
+
+```
+# Distribute the Scheduler service configuration file.
+sudo cp scheduler.yaml /etc/kubernetes/scheduler.yaml
 ```
 
 ## Start the Controller Services
