@@ -21,24 +21,23 @@ Generate the configuration files and then copy them to each controller instance:
 Since `curl` is not available on the base Debian image, grab the necessary files using your laptop,
 
 ```
-curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-apiserver"
-curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-controller-manager"
-curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-scheduler"
-curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
+(
+  export KUBE_VERSION="1.21.1"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-apiserver"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-controller-manager"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-scheduler"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kubectl"
+)
 ```
 
-Copy them to each controller instance,
+Set the permissions to enable the execute bit and then copy them to each controller instance,
 
 ```
-for host in controller-0
-  do scp kube-apiserver kube-controller-manager kube-scheduler kubectl root@$host:/usr/local/bin
+chmod +x kube-apiserver kube-controller-manager kube-scheduler kubectl
+
+for host in controller-0; do
+  scp kube-apiserver kube-controller-manager kube-scheduler kubectl root@$host:/usr/local/bin
 done
-```
-
-Login to each controller instance and set the executable bit on the binaries,
-
-```
-chmod +x /usr/local/bin/kube*
 ```
 
 ## Configure the API Server
