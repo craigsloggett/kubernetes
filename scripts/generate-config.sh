@@ -207,3 +207,4 @@ generate_config() (
 	EOF
 )
 
+generate_config

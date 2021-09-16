@@ -16,6 +16,17 @@ https://github.com/nerditup/kubernetes/blob/main/scripts/generate-config.sh
 
 Generate the configuration files and then copy them to each controller instance: `controller-0`. 
 
+## Configuration Distribution
+
+Distribute the `kube-apiserver`, `kube-scheduler` and `kube-controller-manager` configuration files to each controller host:
+
+```
+for host in controller-0; do
+  ssh nerditup@${host} 'mkdir -p ~/kubernetes/control-plane'
+  scp kube-apiserver.service kube-controller-manager.service kube-scheduler.service kube-scheduler.yaml nerditup@${host}:~/kubernetes/control-plane
+done
+```
+
 ## Download and Install the Kubernetes Control Plane Binaries
 
 Since `curl` is not available on the base Debian image, grab the necessary files using your laptop,
