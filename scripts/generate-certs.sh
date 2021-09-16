@@ -48,11 +48,16 @@ generate_certs() (
 	
 	cat > admin-csr.json <<- EOF
 		{
-		  "CN": "system:masters:admin",
+		  "CN": "admin",
 		  "key": {
 		    "algo": "rsa",
 		    "size": 2048
-		  }
+		  },
+      "names": [
+        {
+          "O": "system:masters"
+        }
+      ]
 		}
 	EOF
 	
