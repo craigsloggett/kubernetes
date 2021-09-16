@@ -28,3 +28,4 @@ generate_encryption_config() (
 	EOF
 )
 
+generate_encryption_config

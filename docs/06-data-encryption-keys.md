@@ -10,7 +10,8 @@ Distribute the `encryption-config` file to each controller host:
 
 ```
 for host in controller-0; do
-  scp encryption-config.yaml nerditup@${host}:~
+  ssh nerditup@${host} 'mkdir -p ~/kubernetes/resources'
+  scp encryption-config.yaml nerditup@${host}:~/kubernetes/resources
 done
 ```
 
