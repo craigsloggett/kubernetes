@@ -26,30 +26,6 @@ The following commands must be run on each worker node instance: `node-0`, `node
 
 Looks like we need to add Kubelet to the controller nodes too!
 
-### Enable Overlay Networking in the Kernel
-
-```
-vi /etc/modules-load.d/modules.conf
-```
-
-Add the following to this file,
-
-```
-overlay
-```
-
-### Enable IP Forwarding in the Kernel
-
-```
-vi /etc/sysctl.d/local.conf
-```
-
-Add the following to this file,
-
-```
-net.ipv4.ip_forward = 1
-```
-
 ### Install `curl` and `gnupg`
 
 ```

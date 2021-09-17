@@ -10,12 +10,12 @@ The target audience for this tutorial is someone who has a set of Raspberry Pis 
 
 Just like [Kubernetes the Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way), this tutorial guides you through bootstrapping a highly available Kubernetes cluster with end-to-end encryption between components and RBAC authentication.
 
-* [kubernetes](https://github.com/kubernetes/kubernetes) v1.21.1
-* [cri-o](https://github.com/cri-o/cri-o) v1.21.0
-* [runc](https://github.com/opencontainers/runc) v1.0.0-rc93
-* [coredns](https://github.com/coredns/coredns) v1.8.4
+* [kubernetes](https://github.com/kubernetes/kubernetes) v1.22.2
+* [etcd](https://github.com/etcd-io/etcd) v3.5.0
+* [cri-o](https://github.com/cri-o/cri-o) v1.21.3
+* [crun](https://github.com/containers/crun) v1.0
 * [cni](https://github.com/containernetworking/plugins) v0.9.1
-* [etcd](https://github.com/etcd-io/etcd) v3.4.16
+* [coredns](https://github.com/coredns/coredns) v1.8.4
 
 ## Labs
 

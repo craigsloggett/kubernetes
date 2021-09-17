@@ -182,23 +182,14 @@ apt install sudo
 update-alternatives --config editor
 ```
 
-### Configure a Regular User
-
-#### Add the User
+### Update `sudo` Configuration to Allow No Password
 
 ```
-adduser nerditup
-usermod –a –G sudo nerditup
+visudo
+# Update the following line with "NOPASSWD"
+- %sudo   ALL=(ALL:ALL) ALL
++ %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
 ```
-
-#### Generate an SSH Key
-
-```
-# As the regular user.
-ssh-keygen -t ed25519
-```
-
-Login as the regular user to confirm.
 
 ### Update `/etc/hosts`
 
@@ -222,13 +213,6 @@ An example list of hosts,
 192.168.1.122   node-2
 ```
 
-### Copy SSH Keys to Each Host
-
-```
-# Example loop for controller-0.
-for i in node-0 node-1 node-2; do ssh-copy-id nerditup@$i; done
-```
-
 ### Disable `swap`
 
 By default, the Debian image used for the Raspberry Pis doesn't use swap. To confirm,
@@ -247,7 +231,7 @@ cat /proc/cgroups
 
 ### Enable Bridge Networking in the Kernel
 
-Load the kernel module,
+Update the loaded kernel modules configuration,
 
 ```
 vi /etc/modules-load.d/modules.conf
@@ -261,13 +245,13 @@ br_netfilter
 
 ### Enable IPVS in the Kernel
 
-Install the support programs to interface with IPVS.
+Install the support programs to interface with IPVS,
 
 ```
 apt install ipvsadm ipset
 ```
 
-Load the kernel modules,
+Update the loaded kernel modules configuration,
 
 ```
 vi /etc/modules-load.d/modules.conf
@@ -283,7 +267,104 @@ ip_vs_sh
 nf_conntrack
 ```
 
-### Enable `iptables` Filtering on the Bridge Network
+### WIP: Possibly only needed on Worker nodes.
+
+#### Enable Overlay Networking in the Kernel
+
+Update the loaded kernel modules configuration,
+
+```
+vi /etc/modules-load.d/modules.conf
+```
+
+Add the following lines to this file,
+
+```
+overlay
+```
+
+#### Enable IP Forwarding in the Kernel
+
+Update the kernel module parameters configuration,
+
+```
+vi /etc/sysctl.d/local.conf
+```
+
+Add the following to this file,
+
+```
+net.ipv4.ip_forward = 1
+```
+
+#### Install the Container Runtime Interface (cri-o)
+
+##### Add the cri-o Package Repositories
+
+```
+(
+  export VERSION=1.21
+  export OS=Debian_Testing
+  
+  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+  
+  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+)
+```
+
+Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_20.10 is used instead,
+
+```
+(
+  export VERSION=1.21
+  export OS=xUbuntu_20.10
+  
+  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+  
+  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+  curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+)
+```
+
+Update the repositories,
+
+```
+apt update
+```
+
+##### Install the Container Runtime Interface
+
+```
+apt install cri-o
+```
+
+### Configure a Regular User
+
+#### Add the User
+
+```
+adduser nerditup
+usermod –a –G sudo nerditup
+```
+
+**Note:** Login as the regular user for the following,
+
+#### Generate an SSH Key
+
+```
+ssh-keygen -t ed25519
+```
+
+#### Distribute SSH Keys to Each Host
+
+```
+# Example loop for controller-0.
+for i in node-0 node-1 node-2; do ssh-copy-id nerditup@$i; done
+```
+
+### WIP: Possibly able to remove the following configuration.
+
+#### Enable `iptables` Filtering on the Bridge Network
 
 TODO: Try and remove this requirement: https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf
 
