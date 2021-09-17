@@ -248,7 +248,7 @@ br_netfilter
 Install the support programs to interface with IPVS,
 
 ```
-apt install ipvsadm ipset
+apt install ipvsadm ipset conntrack
 ```
 
 Update the loaded kernel modules configuration,
@@ -297,6 +297,35 @@ Add the following to this file,
 net.ipv4.ip_forward = 1
 ```
 
+#### Install the Container Runtime (crun)
+
+```
+(
+  export VERSION="1.0"
+  curl -O -L "https://github.com/containers/crun/releases/download/1.0/crun-${VERSION}-linux-arm64"
+  chmod +x crun-${VERSION}-linux-arm64
+  mv "crun-${VERSION}-linux-arm64" /usr/local/bin/crun
+)
+```
+
+#### Install the Container Networking Interface Plugins 
+ 
+Setup the installation directory,
+
+``` 
+mkdir -p /opt/cni/bin 
+``` 
+
+Download and install the plugins,
+
+``` 
+(
+  export VERSION="1.0.1" 
+  curl -O -L "https://github.com/containernetworking/plugins/releases/download/v${VERSION}/cni-plugins-linux-arm64-v${VERSION}.tgz
+  tar -xvf "cni-plugins-linux-arm64-v${VERSION}.tgz" -C /opt/cni/bin/
+)
+``` 
+ 
 #### Install the Container Runtime Interface (cri-o)
 
 ##### Add the cri-o Package Repositories
@@ -306,9 +335,9 @@ net.ipv4.ip_forward = 1
   export VERSION=1.21
   export OS=Debian_Testing
   
-  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${OS}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
   
-  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
+  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/${OS}/Release.key | apt-key add -
 )
 ```
 
@@ -319,10 +348,10 @@ Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_
   export VERSION=1.21
   export OS=xUbuntu_20.04
   
-  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
+  echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/${VERSION}/${OS}/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:${VERSION}.list
   
-  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
-  curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
+  curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:${VERSION}/${OS}/Release.key | apt-key add -
+  curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/${OS}/Release.key | apt-key add -
 )
 ```
 
@@ -336,14 +365,6 @@ apt update
 
 ```
 apt install cri-o
-```
-
-#### Install the Container Runtime (crun)
-
-```
-curl -O -L "https://github.com/containers/crun/releases/download/1.0/crun-1.0-linux-arm64"
-chmod +x crun-1.0-linux-arm64
-mv crun-1.0-linux-arm64 /usr/local/bin/crun
 ```
 
 ### Configure a Regular User
