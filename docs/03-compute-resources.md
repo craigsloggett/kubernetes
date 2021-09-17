@@ -321,7 +321,7 @@ Download and install the plugins,
 ``` 
 (
   export VERSION="1.0.1" 
-  curl -O -L "https://github.com/containernetworking/plugins/releases/download/v${VERSION}/cni-plugins-linux-arm64-v${VERSION}.tgz
+  curl -O -L "https://github.com/containernetworking/plugins/releases/download/v${VERSION}/cni-plugins-linux-arm64-v${VERSION}.tgz"
   tar -xvf "cni-plugins-linux-arm64-v${VERSION}.tgz" -C /opt/cni/bin/
 )
 ``` 
