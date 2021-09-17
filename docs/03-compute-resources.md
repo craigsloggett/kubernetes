@@ -312,12 +312,12 @@ net.ipv4.ip_forward = 1
 )
 ```
 
-Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_20.10 is used instead,
+Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_20.04 is used instead,
 
 ```
 (
   export VERSION=1.21
-  export OS=xUbuntu_20.10
+  export OS=xUbuntu_20.04
   
   echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
   
@@ -336,6 +336,14 @@ apt update
 
 ```
 apt install cri-o
+```
+
+#### Install the Container Runtime (crun)
+
+```
+curl -O -L "https://github.com/containers/crun/releases/download/1.0/crun-1.0-linux-arm64"
+chmod +x crun-1.0-linux-arm64
+mv crun-1.0-linux-arm64 /usr/local/bin/crun
 ```
 
 ### Configure a Regular User
