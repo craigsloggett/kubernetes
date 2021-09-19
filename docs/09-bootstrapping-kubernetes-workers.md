@@ -18,89 +18,29 @@ Generate the configuration files and then copy them to each worker node instance
 
 The following commands must be run on each worker node instance: `node-0`, `node-1` and `node-2`. Login to each controller instance using `ssh`.
 
-## Install the Container Runtime
-
-**NOTE:** This might move to `03-compute-resources.md` if the Networking Plugin requires running a container on the controller node.
-
-> If you are running Kubernetes Apiserver outside of your cluster for some reason (like keeping master nodes behind a firewall), make sure that you run Cilium on master nodes too.
-
-Looks like we need to add Kubelet to the controller nodes too!
-
-### Install `curl` and `gnupg`
-
-```
-apt install curl gnupg
-```
-
-### Install `apt-transport-https` and `ca-certificates`
-
-```
-apt install apt-transport-https ca-certificates
-```
-
-### Add openSUSE's OBS Repository to APT
-
-There are a few repositories to add for `cri-o` and the dependencies.
-
-```
-# Run the following commands as root.
-
-export VERSION=1.21
-export OS=Debian_Testing
-
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
-```
-
-Since cri-o for arm64 is not published to the Debian_Testing repository, xUbuntu_20.04 is used instead,
-
-```
-# Run the following commands as root.
-
-export OS=xUbuntu_20.04
-
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/$VERSION/$OS/ /" > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable:cri-o:$VERSION.list
-
-curl -L https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable:cri-o:$VERSION/$OS/Release.key | apt-key add -
-curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/$OS/Release.key | apt-key add -
-```
-
-Update the repositories,
-
-```
-apt update
-apt upgrade
-```
-
-### Install the Container Runtime
-
-The `runc` packaged with `cri-o` is used to ensure compatibility between versions.
-
-```
-apt install cri-o cri-o-runc
-```
-
 ## Provisioning a Kubernetes Worker Node
 
 ### Download and Install the Kubernetes Worker Node Binaries
 
-Download the official Kubernetes release binaries:
+Since `curl` is not available on the base Debian image, grab the necessary files using your laptop,
 
 ```
-wget -q --show-progress --https-only --timestamping \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubelet" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kube-proxy" \
-  "https://storage.googleapis.com/kubernetes-release/release/v1.21.1/bin/linux/arm64/kubectl"
+(
+  export KUBE_VERSION="1.22.2"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kubelet"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kube-proxy"
+  curl -O -L "https://storage.googleapis.com/kubernetes-release/release/v${KUBE_VERSION}/bin/linux/arm64/kubectl"
+)
 ```
 
-Install the Kubernetes binaries:
+Set the permissions to enable the execute bit and then copy them to each controller instance,
 
 ```
-{
-  chmod +x kubelet kube-proxy kubectl
-  sudo mv kubelet kube-proxy kubectl /usr/local/bin/
-}
+chmod +x kubelet kube-proxy kubectl
+
+for host in node-0 node-1 node-2; do
+  scp kubelet kube-proxy kubectl root@$host:/usr/local/bin
+done
 ```
 
 ### Configure CNI Networking
@@ -145,37 +85,60 @@ EOF
 
 ## Configure the Kubelet
 
-All configuration and certificates will be kept in `/etc/kubernetes`.
+Certificates are kept in `/etc/kubernetes/pki`, kubeconfig files are kept in `/etc/kubernetes` and the service configuration will be kept in `/var/lib/kubelet`.
+
+When copying the certificate files, the filenames will be changed to reflect the state of the system as it would be when using `kubeadm`.
 
 ```
 # Setup the directories.
 sudo mkdir -p /etc/kubernetes/pki
+sudo mkdir -p /var/lib/kubelet
+```
 
+```
 # Distribute the certificates.
 sudo cp ca.pem /etc/kubernetes/pki/ca.crt
-sudo cp hostname.pem /etc/kubernetes/pki/hostname.crt
-sudo cp hostname-key.pem /etc/kubernetes/pki/hostname.key
+sudo cp "${HOSTNAME}.pem" "/etc/kubernetes/pki/${HOSTNAME}.crt"
+sudo cp "${HOSTNAME}-key.pem" "/etc/kubernetes/pki/${HOSTNAME}.key"
+```
 
-# Distribute the Kubelet configuration file.
-sudo cp kubelet-config.yaml /etc/kubernetes/kubelet-config.yaml
+```
+# Distribute the Kubelet kubeconfig file.
+sudo cp "${HOSTNAME}-kubelet.conf" /etc/kubernetes/kubelet.conf
+```
 
+```
 # Distribute the Kubelet systemd unit file.
 sudo cp kubelet.service /etc/systemd/system/kubelet.service
 ```
 
+```
+# Distribute the Kubelet service configuration file.
+sudo cp "${HOSTNAME}-kubelet.yaml" /var/lib/kubelet/config.yaml
+```
+
 ## Configure the Kubernetes Proxy
 
-All configuration and certificates will be kept in `/etc/kubernetes`.
+The service configuration will be kept in `/var/lib/kube-proxy`.
 
 ```
 # Setup the directories.
-sudo mkdir -p /etc/kubernetes
+sudo mkdir -p /var/lib/kube-proxy
+```
 
-# Distribute the Kube Proxy configuration file.
-sudo cp kube-proxy-config.yaml /etc/kubernetes/kube-proxy-config.yaml
+```
+# Distribute the Kube Proxy kubeconfig file.
+sudo cp proxy.conf /etc/kubernetes/proxy.conf
+```
 
+```
 # Distribute the Kube Proxy systemd unit file.
 sudo cp kube-proxy.service /etc/systemd/system/kube-proxy.service
+```
+
+```
+# Distribute the Kube Proxy service configuration file.
+sudo cp proxy.yaml /var/lib/kube-proxy/config.yaml
 ```
 
 ## Start the Worker Services

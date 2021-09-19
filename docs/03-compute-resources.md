@@ -303,7 +303,7 @@ net.ipv4.ip_forward = 1
 (
   export VERSION="1.0"
   curl -O -L "https://github.com/containers/crun/releases/download/1.0/crun-${VERSION}-linux-arm64"
-  chmod +x crun-${VERSION}-linux-arm64
+  chmod +x "crun-${VERSION}-linux-arm64"
   mv "crun-${VERSION}-linux-arm64" /usr/local/bin/crun
 )
 ```
@@ -323,6 +323,7 @@ Download and install the plugins,
   export VERSION="1.0.1" 
   curl -O -L "https://github.com/containernetworking/plugins/releases/download/v${VERSION}/cni-plugins-linux-arm64-v${VERSION}.tgz"
   tar -xvf "cni-plugins-linux-arm64-v${VERSION}.tgz" -C /opt/cni/bin/
+  rm "cni-plugins-linux-arm64-v${VERSION}.tgz"
 )
 ``` 
  
@@ -341,7 +342,8 @@ Download and install the plugins,
 )
 ```
 
-Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_20.04 is used instead,
+**Note:** Since cri-o for `aarch64` is not published to the Debian_11 repository, xUbuntu_20.04 is used instead.
+**Note:** xUbuntu_20.10 uses a newer version of `glibc` and thus is incompatible with Debian 11.
 
 ```
 (
@@ -365,6 +367,14 @@ apt update
 
 ```
 apt install cri-o
+```
+
+##### Enable and Start the Container Runtime Interface
+
+```
+systemctl daemon-reload
+systemctl enable cri-o.service
+systemctl start cri-o.service
 ```
 
 ### Configure a Regular User
