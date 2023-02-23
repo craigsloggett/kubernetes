@@ -103,6 +103,7 @@ generate_config() (
 	# Kubernetes Scheduler
 
 	cat > scheduler.yaml <<- EOF
+		---
 		apiVersion: kubescheduler.config.k8s.io/v1beta1
 		kind: KubeSchedulerConfiguration
 		clientConnection:
@@ -133,8 +134,9 @@ generate_config() (
 
 	for node_hostname in "${NODE_HOSTNAMES[@]}"; do
 		cat > "${node_hostname}-kubelet.yaml" <<- EOF
-			kind: KubeletConfiguration
+			---
 			apiVersion: kubelet.config.k8s.io/v1beta1
+			kind: KubeletConfiguration
 			authentication:
 			  anonymous:
 			    enabled: false
@@ -187,8 +189,9 @@ generate_config() (
 	# Kubernetes Proxy
 
 	cat > proxy.yaml <<- EOF
-		kind: KubeProxyConfiguration
+		---
 		apiVersion: kubeproxy.config.k8s.io/v1alpha1
+		kind: KubeProxyConfiguration
 		clientConnection:
 		  kubeconfig: "${KUBECONFIG_DIRECTORY}/proxy.conf"
 		mode: "ipvs"
