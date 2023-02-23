@@ -1,11 +1,22 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
+# This script sets up all environment variables needed
+# to generate the configuration. Some variables are
+# used multiple times. Since this is a learning excercise,
+# each service specifies all of the required variables
+# but they are commented out if they've already been declared.
+
 # ---
 # LOCAL
 # Configuration Parameters
 
-export CERT_DIR="$(dirname -- "$0")/.output/certs"
-export KUBECONFIG_DIR="$(dirname -- "$0")/.output/kubeconfig"
+CERT_DIR="$(dirname -- "$0")/.output/certs"
+export CERT_DIR
+
+KUBECONFIG_DIR="$(dirname -- "$0")/.output/kubeconfig"
+export KUBECONFIG_DIR
 
 # ---
 # CERTS
@@ -35,7 +46,7 @@ export NODE_2_IP="192.168.1.122"
 
 #export NODE_HOSTNAMES=("node-0" "node-1" "node-2")
 export CLUSTER_NAME="kubernetes"
-export PUBLIC_IP="192.168.1.110"  # Same as CONTROLLER_IP
+export PUBLIC_IP="192.168.1.110" # Same as CONTROLLER_IP
 
 # ---
 # API
@@ -86,4 +97,3 @@ export ETCD_CONFIG_DIRECTORY="/etc/etcd"
 export ETCD_PKI_DIRECTORY="/etc/kubernetes/pki/etcd"
 #export CONTROLLER_HOSTNAME="controller-0"
 #export CONTROLLER_IP="192.168.1.110"
-

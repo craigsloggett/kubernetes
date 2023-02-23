@@ -1,26 +1,29 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Configuration Parameters
 
 source "$(dirname -- "$0")/env.sh"
 
 # Run this in a subshell to avoid having to deal with changing directories.
 generate_config() (
-	local conf_dir="$(dirname -- "$0")/.output/config"
+	local conf_dir
+	conf_dir="$(dirname -- "$0")/.output/config"
 
 	# Create a place to store the configuration files.
 	[ ! -d "$conf_dir" ] && mkdir -p "$conf_dir"
 	cd "$conf_dir" || exit
-	
+
 	# ---
-	
+
 	# Kubernetes API Server
-	
+
 	cat > kube-apiserver.service <<- EOF
 		[Unit]
 		Description=Kubernetes API Server
 		Documentation=https://github.com/kubernetes/kubernetes
-		
+
 		[Service]
 		ExecStart=/usr/local/bin/kube-apiserver \\
 		  --advertise-address=${ADVERTISE_ADDRESS} \\
@@ -59,20 +62,20 @@ generate_config() (
 		  --v=2
 		Restart=on-failure
 		RestartSec=5
-		
+
 		[Install]
 		WantedBy=multi-user.target
 	EOF
-	
+
 	# ---
-	
+
 	# Kubernetes Controller Manager
-	
+
 	cat > kube-controller-manager.service <<- EOF
 		[Unit]
 		Description=Kubernetes Controller Manager
 		Documentation=https://github.com/kubernetes/kubernetes
-		
+
 		[Service]
 		ExecStart=/usr/local/bin/kube-controller-manager \\
 		  --bind-address=0.0.0.0 \\
@@ -90,15 +93,15 @@ generate_config() (
 		  --v=2
 		Restart=on-failure
 		RestartSec=5
-		
+
 		[Install]
 		WantedBy=multi-user.target
 	EOF
-	
+
 	# ---
-	
+
 	# Kubernetes Scheduler
-	
+
 	cat > scheduler.yaml <<- EOF
 		apiVersion: kubescheduler.config.k8s.io/v1beta1
 		kind: KubeSchedulerConfiguration
@@ -107,27 +110,27 @@ generate_config() (
 		leaderElection:
 		  leaderElect: true
 	EOF
-	
+
 	cat > kube-scheduler.service <<- EOF
 		[Unit]
 		Description=Kubernetes Scheduler
 		Documentation=https://github.com/kubernetes/kubernetes
-		
+
 		[Service]
 		ExecStart=/usr/local/bin/kube-scheduler \\
 		  --config=${KUBE_SCHEDULER_CONFIG_DIRECTORY}/config.yaml \\
 		  --v=2
 		Restart=on-failure
 		RestartSec=5
-		
+
 		[Install]
 		WantedBy=multi-user.target
 	EOF
-	
+
 	# ---
-	
+
 	# Kubernetes Kubelet
-	
+
 	for node_hostname in "${NODE_HOSTNAMES[@]}"; do
 		cat > "${node_hostname}-kubelet.yaml" <<- EOF
 			kind: KubeletConfiguration
@@ -155,15 +158,15 @@ generate_config() (
 			tlsPrivateKeyFile: "${PKI_DIRECTORY}/${node_hostname}.key"
 		EOF
 	done
-	
-	# NOTE: It is assumed that the kubeconfig and config files are named to 
-	#       kubelet.conf and kubelet.yaml respectively once copied to the 
+
+	# NOTE: It is assumed that the kubeconfig and config files are named to
+	#       kubelet.conf and kubelet.yaml respectively once copied to the
 	#       appropriate host.
 	cat > kubelet.service <<- EOF
 		[Unit]
 		Description=Kubernetes Kubelet
 		Documentation=https://github.com/kubernetes/kubernetes
-		
+
 		[Service]
 		ExecStart=/usr/local/bin/kubelet \\
 		  --config=${KUBELET_CONFIG_DIRECTORY}/config.yaml \\
@@ -174,15 +177,15 @@ generate_config() (
 		  --v=2
 		Restart=on-failure
 		RestartSec=5
-		
+
 		[Install]
 		WantedBy=multi-user.target
 	EOF
-	
+
 	# ---
-	
+
 	# Kubernetes Proxy
-	
+
 	cat > proxy.yaml <<- EOF
 		kind: KubeProxyConfiguration
 		apiVersion: kubeproxy.config.k8s.io/v1alpha1
@@ -190,18 +193,18 @@ generate_config() (
 		  kubeconfig: "${KUBECONFIG_DIRECTORY}/proxy.conf"
 		mode: "ipvs"
 	EOF
-	
+
 	cat > kube-proxy.service <<- EOF
 		[Unit]
 		Description=Kubernetes Kube Proxy
 		Documentation=https://github.com/kubernetes/kubernetes
-		
+
 		[Service]
 		ExecStart=/usr/local/bin/kube-proxy \\
 		  --config=${KUBE_PROXY_CONFIG_DIRECTORY}/config.yaml
 		Restart=on-failure
 		RestartSec=5
-		
+
 		[Install]
 		WantedBy=multi-user.target
 	EOF

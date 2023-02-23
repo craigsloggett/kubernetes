@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 # Source all the functions.
 
 source "$(dirname -- "$0")/generate-certs.sh"
@@ -15,4 +17,3 @@ generate_config
 generate_encryption_config
 generate_etcd_config
 generate_kubeconfig
-
